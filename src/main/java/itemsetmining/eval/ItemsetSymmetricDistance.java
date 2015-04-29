@@ -95,7 +95,7 @@ public class ItemsetSymmetricDistance {
 			System.out.println("Not enough non-singleton itemsets in set: "
 					+ count);
 
-		int avgMinDiff = 0;
+		double avgMinDiff = 0;
 		for (final Itemset set1 : topItemsets) {
 
 			int minDiff = Integer.MAX_VALUE;
