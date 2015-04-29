@@ -18,7 +18,7 @@ public abstract class AbstractItemset extends AbstractCollection<Integer>
 
 	/**
 	 * Get the items as a Set
-	 * 
+	 *
 	 * @return the items
 	 * @deprecated slow
 	 */
@@ -32,7 +32,7 @@ public abstract class AbstractItemset extends AbstractCollection<Integer>
 
 	/**
 	 * Add given itemset to this itemset
-	 * 
+	 *
 	 * @param items
 	 *            an itemset that should be added to this itemset
 	 */
@@ -44,7 +44,7 @@ public abstract class AbstractItemset extends AbstractCollection<Integer>
 
 	/**
 	 * Add an item to this itemset
-	 * 
+	 *
 	 * @param item
 	 *            an item that should be added to this itemset
 	 * @return
@@ -56,8 +56,20 @@ public abstract class AbstractItemset extends AbstractCollection<Integer>
 	}
 
 	/**
+	 * Remove an item from this itemset
+	 *
+	 * @param item
+	 *            an item that should be removed from this itemset
+	 * @return
+	 */
+	public boolean remove(final Integer item) {
+		this.items.set(item, false);
+		return true;
+	}
+
+	/**
 	 * Add items to this itemset
-	 * 
+	 *
 	 * @param items
 	 *            a collection of items that should be added to this itemset
 	 */
@@ -70,7 +82,7 @@ public abstract class AbstractItemset extends AbstractCollection<Integer>
 
 	/**
 	 * Add items to this itemset
-	 * 
+	 *
 	 * @param items
 	 *            an array of items that should be added to this itemset
 	 */
@@ -88,7 +100,7 @@ public abstract class AbstractItemset extends AbstractCollection<Integer>
 
 	/**
 	 * Check if this itemset contains given itemset
-	 * 
+	 *
 	 * @param items
 	 */
 	public boolean contains(final AbstractItemset set) {
@@ -100,7 +112,7 @@ public abstract class AbstractItemset extends AbstractCollection<Integer>
 
 	/**
 	 * Count items contained in the union of this itemset and given itemset
-	 * 
+	 *
 	 * @param itemset
 	 */
 	public int countUnion(final AbstractItemset set) {

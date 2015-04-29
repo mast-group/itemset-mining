@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,7 +30,6 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
-import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 
 public class ItemsetMining extends ItemsetMiningCore {
@@ -238,24 +236,23 @@ public class ItemsetMining extends ItemsetMiningCore {
 		return singletons;
 	}
 
-	private static List<Rule> generateAssociationRules(
+	public static List<Rule> generateAssociationRules(
 			final Map<Itemset, Double> itemsets) {
 
 		final List<Rule> rules = Lists.newArrayList();
 
 		for (final Entry<Itemset, Double> entry : itemsets.entrySet()) {
-			final HashSet<Integer> setForRecursion = Sets.newHashSet(entry
-					.getKey());
-			recursiveGenRules(rules, setForRecursion, new HashSet<Integer>(),
+			final Itemset setForRecursion = new Itemset(entry.getKey());
+			recursiveGenRules(rules, setForRecursion, new Itemset(),
 					entry.getValue());
 		}
 
 		return rules;
 	}
 
-	private static void recursiveGenRules(final List<Rule> rules,
-			final HashSet<Integer> antecedent,
-			final HashSet<Integer> consequent, final double prob) {
+	public static void recursiveGenRules(final List<Rule> rules,
+			final Itemset antecedent, final Itemset consequent,
+			final double prob) {
 
 		// Stop if no more rules to generate
 		if (antecedent.isEmpty())
@@ -267,9 +264,9 @@ public class ItemsetMining extends ItemsetMiningCore {
 
 		// Recursively generate more rules
 		for (final Integer element : antecedent) {
-			final HashSet<Integer> newAntecedent = Sets.newHashSet(antecedent);
+			final Itemset newAntecedent = new Itemset(antecedent);
 			newAntecedent.remove(element);
-			final HashSet<Integer> newConsequent = Sets.newHashSet(consequent);
+			final Itemset newConsequent = new Itemset(consequent);
 			newConsequent.add(element);
 			recursiveGenRules(rules, newAntecedent, newConsequent, prob);
 		}
