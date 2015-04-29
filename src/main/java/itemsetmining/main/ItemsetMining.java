@@ -13,6 +13,7 @@ import itemsetmining.util.Logging;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +29,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.google.common.base.Charsets;
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.io.Files;
 
@@ -164,7 +164,7 @@ public class ItemsetMining extends ItemsetMiningCore {
 	public static TransactionList readTransactions(final File inputFile)
 			throws IOException {
 
-		final List<Transaction> transactions = Lists.newArrayList();
+		final List<Transaction> transactions = new ArrayList<>();
 
 		// for each line (transaction) until the end of file
 		final LineIterator it = FileUtils.lineIterator(inputFile, "UTF-8");
@@ -239,7 +239,7 @@ public class ItemsetMining extends ItemsetMiningCore {
 	public static List<Rule> generateAssociationRules(
 			final Map<Itemset, Double> itemsets) {
 
-		final List<Rule> rules = Lists.newArrayList();
+		final List<Rule> rules = new ArrayList<>();
 
 		for (final Entry<Itemset, Double> entry : itemsets.entrySet()) {
 			final Itemset setForRecursion = new Itemset(entry.getKey());

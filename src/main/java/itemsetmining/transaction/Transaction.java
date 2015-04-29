@@ -11,7 +11,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 
 /** A transaction is an ordered list of items */
@@ -27,7 +26,7 @@ public class Transaction extends AbstractItemset implements Serializable {
 
 	public void initializeCachedItemsets(final Multiset<Integer> singletons,
 			final long noTransactions) {
-		cachedItemsets = Maps.newHashMap();
+		cachedItemsets = new HashMap<>();
 		for (final Multiset.Entry<Integer> entry : singletons.entrySet()) {
 			if (this.contains(entry.getElement()))
 				cachedItemsets.put(new Itemset(entry.getElement()),
@@ -83,7 +82,7 @@ public class Transaction extends AbstractItemset implements Serializable {
 
 	/** Calculate cached cost for structural EM-step */
 	private double calculateCachedCost(final Map<Itemset, Double> itemsets,
-			HashSet<Itemset> covering) {
+			final HashSet<Itemset> covering) {
 		double totalCost = 0;
 		for (final Entry<Itemset, Double> entry : cachedItemsets.entrySet()) {
 			final Itemset set = entry.getKey();

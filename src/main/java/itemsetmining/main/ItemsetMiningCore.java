@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
@@ -23,11 +24,8 @@ import scala.Tuple2;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
 
 public abstract class ItemsetMiningCore {
 
@@ -65,8 +63,8 @@ public abstract class ItemsetMiningCore {
 
 		// Intialize itemsets with singleton sets and their relative support
 		// as well as supports with singletons and their actual supports
-		final HashMap<Itemset, Double> itemsets = Maps.newHashMap();
-		final HashMap<Itemset, Integer> supports = Maps.newHashMap();
+		final HashMap<Itemset, Double> itemsets = new HashMap<>();
+		final HashMap<Itemset, Integer> supports = new HashMap<>();
 		for (final Multiset.Entry<Integer> entry : singletons.entrySet()) {
 			final Itemset set = new Itemset(entry.getElement());
 			final int support = entry.getCount();
@@ -76,7 +74,7 @@ public abstract class ItemsetMiningCore {
 		logger.fine(" Initial itemsets: " + itemsets + "\n");
 
 		// Initialize list of rejected sets
-		final Set<Itemset> rejected_sets = Sets.newHashSet();
+		final Set<Itemset> rejected_sets = new HashSet<>();
 
 		// Define decreasing support ordering for itemsets
 		final Ordering<Itemset> supportOrdering = new Ordering<Itemset>() {
@@ -87,7 +85,7 @@ public abstract class ItemsetMiningCore {
 		}.compound(Ordering.usingToString());
 
 		// Define decreasing support ordering for candidate itemsets
-		final HashMap<Itemset, Integer> candidateSupports = Maps.newHashMap();
+		final HashMap<Itemset, Integer> candidateSupports = new HashMap<>();
 		final Ordering<Itemset> candidateSupportOrdering = new Ordering<Itemset>() {
 			@Override
 			public int compare(final Itemset set1, final Itemset set2) {
@@ -286,8 +284,8 @@ public abstract class ItemsetMiningCore {
 				maxSteps, candidateSupportOrdering);
 
 		// Sort itemsets according to given ordering
-		final ArrayList<Itemset> sortedItemsets = Lists.newArrayList(itemsets
-				.keySet());
+		final ArrayList<Itemset> sortedItemsets = new ArrayList<>(
+				itemsets.keySet());
 		Collections.sort(sortedItemsets, itemsetSupportOrdering);
 
 		// Find maxSteps supersets for all itemsets
@@ -376,8 +374,8 @@ public abstract class ItemsetMiningCore {
 		// logger.finest(" Structural candidate itemsets: ");
 
 		// Sort itemsets according to given ordering
-		final ArrayList<Itemset> sortedItemsets = Lists.newArrayList(itemsets
-				.keySet());
+		final ArrayList<Itemset> sortedItemsets = new ArrayList<>(
+				itemsets.keySet());
 		Collections.sort(sortedItemsets, itemsetOrdering);
 
 		// Suggest supersets for all itemsets
@@ -496,7 +494,7 @@ public abstract class ItemsetMiningCore {
 			final HashMap<Itemset, Double> itemsets,
 			final TransactionDatabase transactions, final ItemsetTree tree) {
 
-		final HashMap<Itemset, Double> interestingnessMap = Maps.newHashMap();
+		final HashMap<Itemset, Double> interestingnessMap = new HashMap<>();
 
 		// Calculate interestingness
 		final long noTransactions = transactions.size();
@@ -512,8 +510,8 @@ public abstract class ItemsetMiningCore {
 	/** Read output itemsets from file (sorted by interestingness) */
 	public static Map<Itemset, Double> readIIMItemsets(final File output)
 			throws IOException {
-		final HashMap<Itemset, Double> itemsets = Maps.newHashMap();
-		final HashMap<Itemset, Double> intMap = Maps.newHashMap();
+		final HashMap<Itemset, Double> itemsets = new HashMap<>();
+		final HashMap<Itemset, Double> intMap = new HashMap<>();
 
 		final String[] lines = FileUtils.readFileToString(output).split("\n");
 

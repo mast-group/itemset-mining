@@ -11,8 +11,6 @@ import org.apache.commons.io.FileUtils;
 
 import ca.pfv.spmf.tools.other_dataset_tools.FixTransactionDatabaseTool;
 
-import com.google.common.collect.Maps;
-
 public class MTVItemsetMining {
 
 	private static final String TMPDB = "/tmp/fixed-dataset.dat";
@@ -65,7 +63,7 @@ public class MTVItemsetMining {
 	/** Read in MTV itemsets */
 	public static LinkedHashMap<Itemset, Double> readMTVItemsets(
 			final File output) throws IOException {
-		final LinkedHashMap<Itemset, Double> itemsets = Maps.newLinkedHashMap();
+		final LinkedHashMap<Itemset, Double> itemsets = new LinkedHashMap<>();
 
 		final String[] lines = FileUtils.readFileToString(output).split("\n");
 

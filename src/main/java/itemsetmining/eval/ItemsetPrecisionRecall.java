@@ -23,7 +23,6 @@ import java.util.logging.Level;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.output.TeeOutputStream;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 
@@ -58,8 +57,8 @@ public class ItemsetPrecisionRecall {
 	public static void main(final String[] args) throws IOException {
 
 		// Read in background distribution
-		final Map<Itemset, Double> backgroundItemsets = Maps
-				.newHashMap(ItemsetMiningCore.readIIMItemsets(itemsetLog));
+		final Map<Itemset, Double> backgroundItemsets = new HashMap<>(
+				ItemsetMiningCore.readIIMItemsets(itemsetLog));
 
 		// Set up transaction DB
 		final HashMap<Itemset, Double> specialItemsets = TransactionGenerator

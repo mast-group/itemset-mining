@@ -4,15 +4,12 @@ import itemsetmining.itemset.Itemset;
 import itemsetmining.transaction.Transaction;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /** Container class for Inference Algorithms */
 public class InferenceAlgorithms {
@@ -35,7 +32,7 @@ public class InferenceAlgorithms {
 		@Override
 		public HashSet<Itemset> infer(final Transaction transaction) {
 
-			final HashSet<Itemset> covering = Sets.newHashSet();
+			final HashSet<Itemset> covering = new HashSet<>();
 			final int transactionSize = transaction.size();
 			final Transaction coveredItems = new Transaction();
 
@@ -88,16 +85,15 @@ public class InferenceAlgorithms {
 		@Override
 		public HashSet<Itemset> infer(final Transaction transaction) {
 
-			final HashSet<Itemset> covering = Sets.newHashSet();
+			final HashSet<Itemset> covering = new HashSet<>();
 			final Random rand = new Random();
-			final List<Integer> notCoveredItems = Lists
-					.newArrayList(transaction);
+			final List<Integer> notCoveredItems = new ArrayList<>(transaction);
 
 			final HashMap<Itemset, Double> cachedItemsets = transaction
 					.getCachedItemsets();
 
 			// Calculate costs
-			final HashMap<Itemset, Double> costs = Maps.newHashMap();
+			final HashMap<Itemset, Double> costs = new HashMap<>();
 			for (final Entry<Itemset, Double> entry : cachedItemsets.entrySet()) {
 				costs.put(entry.getKey(), -Math.log(entry.getValue()));
 			}

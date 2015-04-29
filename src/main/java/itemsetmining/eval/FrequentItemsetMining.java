@@ -20,7 +20,6 @@ import ca.pfv.spmf.tools.other_dataset_tools.FixTransactionDatabaseTool;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 
 public class FrequentItemsetMining {
@@ -98,7 +97,7 @@ public class FrequentItemsetMining {
 		if (patterns == null) {
 			return null;
 		} else {
-			final HashMap<Itemset, Integer> itemsets = Maps.newHashMap();
+			final HashMap<Itemset, Integer> itemsets = new HashMap<>();
 			for (final List<ca.pfv.spmf.patterns.itemset_array_integers_with_count.Itemset> level : patterns
 					.getLevels()) {
 				for (final ca.pfv.spmf.patterns.itemset_array_integers_with_count.Itemset itemset : level)
@@ -116,7 +115,7 @@ public class FrequentItemsetMining {
 	/** Read in frequent itemsets */
 	public static SortedMap<Itemset, Integer> readFrequentItemsets(
 			final File output) throws IOException {
-		final HashMap<Itemset, Integer> itemsets = Maps.newHashMap();
+		final HashMap<Itemset, Integer> itemsets = new HashMap<>();
 
 		final LineIterator it = FileUtils.lineIterator(output);
 		while (it.hasNext()) {

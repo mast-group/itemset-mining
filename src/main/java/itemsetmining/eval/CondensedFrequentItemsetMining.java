@@ -12,8 +12,6 @@ import ca.pfv.spmf.input.transaction_database_list_integers.TransactionDatabase;
 import ca.pfv.spmf.patterns.itemset_array_integers_with_tids_bitset.Itemsets;
 import ca.pfv.spmf.tools.other_dataset_tools.FixTransactionDatabaseTool;
 
-import com.google.common.collect.Maps;
-
 public class CondensedFrequentItemsetMining {
 
 	private static final String TMPDB = "/tmp/fixed-dataset.dat";
@@ -74,7 +72,7 @@ public class CondensedFrequentItemsetMining {
 
 	/** Convert frequent itemsets to HashMap<Itemset, Integer> */
 	public static HashMap<Itemset, Integer> toMap(final Itemsets patterns) {
-		final HashMap<Itemset, Integer> itemsets = Maps.newHashMap();
+		final HashMap<Itemset, Integer> itemsets = new HashMap<>();
 		for (final List<ca.pfv.spmf.patterns.itemset_array_integers_with_tids_bitset.Itemset> level : patterns
 				.getLevels()) {
 			for (final ca.pfv.spmf.patterns.itemset_array_integers_with_tids_bitset.Itemset itemset : level)

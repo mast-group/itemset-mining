@@ -6,14 +6,13 @@ import itemsetmining.main.ItemsetMiningCore;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 
 import org.apache.commons.collections.CollectionUtils;
-
-import com.google.common.collect.Sets;
 
 public class ItemsetSymmetricDistance {
 
@@ -82,7 +81,7 @@ public class ItemsetSymmetricDistance {
 
 		// Filter out singletons
 		int count = 0;
-		final Set<Itemset> topItemsets = Sets.newHashSet();
+		final Set<Itemset> topItemsets = new HashSet<>();
 		for (final Itemset set : itemsets.keySet()) {
 			if (set.size() != 1) {
 				topItemsets.add(set);
@@ -91,7 +90,7 @@ public class ItemsetSymmetricDistance {
 			if (count == topN)
 				break;
 		}
-		if (count < 100)
+		if (count < topN)
 			System.out.println("Not enough non-singleton itemsets in set: "
 					+ count);
 
