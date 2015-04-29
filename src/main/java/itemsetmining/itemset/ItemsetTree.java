@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -19,33 +18,30 @@ import org.apache.commons.io.LineIterator;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
-import com.google.common.primitives.Ints;
 
 /**
  * This is a modified implementation of the Memory Efficient Itemset-tree as
  * proposed in:
- * 
+ *
  * Fournier-Viger, P., Mwamikazi, E., Gueniche, T., Faghihi, U. (2013). Memory
  * Efficient Itemset Tree for Targeted Association Rule Mining. Proc. 9th
  * International Conference on Advanced Data Mining and Applications (ADMA 2013)
  * Part II, Springer LNAI 8347, pp. 95-106.
- * 
+ *
  * This file is adapted from the SPMF DATA MINING SOFTWARE
  * (http://www.philippe-fournier-viger.com/spmf). Copyright (c) 2013 Philippe
  * Fournier-Viger
- * 
+ *
  * SPMF is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
- * 
+ *
  * SPMF is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * SPMF. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -119,7 +115,7 @@ public class ItemsetTree {
 
 		// Get support of all children
 		double sumSupport = 0;
-		final HashMap<ItemsetTreeNode, Integer> supports = Maps.newHashMap();
+		final HashMap<ItemsetTreeNode, Integer> supports = new HashMap<>();
 		for (final ItemsetTreeNode child : node.children) {
 			supports.put(child, child.support);
 			sumSupport += child.support;
@@ -151,7 +147,7 @@ public class ItemsetTree {
 
 	/**
 	 * Build the itemset-tree based on an input file containing transactions
-	 * 
+	 *
 	 * @param input
 	 *            an input file
 	 * @return
@@ -194,7 +190,7 @@ public class ItemsetTree {
 	/**
 	 * Build the itemset-tree based on an HDFS input file containing
 	 * transactions
-	 * 
+	 *
 	 * @param hdfsPath
 	 *            HDFS input path string
 	 * @param hdfs
@@ -240,7 +236,7 @@ public class ItemsetTree {
 
 	/**
 	 * Add transaction to tree
-	 * 
+	 *
 	 * @param line
 	 *            the transaction as a string of items
 	 */
@@ -249,7 +245,7 @@ public class ItemsetTree {
 		// split the transaction into items
 		final String[] lineSplit = line.split(" ");
 		// create a structure for storing the transaction
-		final List<Integer> itemset = new ArrayList<Integer>();
+		final Itemset itemset = new Itemset();
 		// for each item in the transaction
 		for (int i = 0; i < lineSplit.length; i++) {
 			// convert the item to integer and add it to the structure
@@ -257,16 +253,17 @@ public class ItemsetTree {
 		}
 
 		// sort items in the itemset by descending order of support
-		Collections.sort(itemset, itemComparator);
+		final int[] sortedItemset = itemset.stream().sorted(itemComparator)
+				.mapToInt(i -> i).toArray();
 
 		// call the method "construct" to add the transaction to the tree
-		construct(null, root, Ints.toArray(itemset), null);
+		construct(null, root, sortedItemset, null);
 	}
 
 	/**
 	 * Given the root of a sub-tree, add an itemset at the proper position in
 	 * that tree
-	 * 
+	 *
 	 * @param r
 	 *            the root of the sub-tree
 	 * @param s
@@ -437,7 +434,7 @@ public class ItemsetTree {
 	/**
 	 * Make a copy of an itemset while removing items that appears in two
 	 * itemsets named "prefix" and "s".
-	 * 
+	 *
 	 * @param r
 	 *            the itemset
 	 * @param prefix
@@ -493,7 +490,7 @@ public class ItemsetTree {
 
 	/**
 	 * Make a copy of an itemset without items from a second itemset.
-	 * 
+	 *
 	 * @param itemset1
 	 *            the first itemset
 	 * @param itemset2
@@ -538,7 +535,7 @@ public class ItemsetTree {
 	/**
 	 * Method to calculate the largest common ancestor of two given itemsets (as
 	 * defined in the paper).
-	 * 
+	 *
 	 * @param itemset1
 	 *            the first itemset
 	 * @param itemset2
@@ -594,7 +591,7 @@ public class ItemsetTree {
 	 * is an ancestor of itemset2 if: - itemset1 is null - size(itemset1) <
 	 * size(itemset2) && if itemset1 has k items, then the first k items of
 	 * itemset2 are equals to the first k items of itemset1.
-	 * 
+	 *
 	 * @param itemset1
 	 *            the first itemset
 	 * @param itemset2
@@ -629,7 +626,7 @@ public class ItemsetTree {
 
 	/**
 	 * Method to check if two itemsets are equals
-	 * 
+	 *
 	 * @param itemset1
 	 *            the first itemset
 	 * @param itemset2
@@ -661,7 +658,7 @@ public class ItemsetTree {
 
 	/**
 	 * Check if itemset1 is the same as the concatenation of prefix and itemset2
-	 * 
+	 *
 	 * @param itemset1
 	 *            the first itemset
 	 * @param prefix
@@ -708,7 +705,7 @@ public class ItemsetTree {
 
 	/**
 	 * Method that append two itemsets to create a larger one
-	 * 
+	 *
 	 * @param a1
 	 *            the first itemset
 	 * @param a2
@@ -765,7 +762,7 @@ public class ItemsetTree {
 
 	/**
 	 * Recursive method to calculate statistics about the itemset tree
-	 * 
+	 *
 	 * @param root
 	 *            the root node of the current subtree
 	 * @param length
@@ -808,30 +805,29 @@ public class ItemsetTree {
 	}
 
 	/**
-	 * Get the support of a given itemset s.
-	 * 
-	 * @param s
+	 * Get the support of a given itemset set.
+	 *
+	 * @param set
 	 *            the itemset
 	 * @return the support as an integer.
 	 */
-	public int getSupportOfItemset(final Itemset s) {
-		final List<Integer> items = Lists.newArrayList(s.getItems());
-		Collections.sort(items, itemComparator); // sort by descending support
-		return count(Ints.toArray(items), root, new int[0]); // call count
-																// method
+	public int getSupportOfItemset(final Itemset set) {
+		final int[] sortedItems = set.stream().sorted(itemComparator)
+				.mapToInt(i -> i).toArray(); // sort by descending support
+		return count(sortedItems, root, new int[0]); // call count method
 	}
 
 	/**
 	 * This method calculate the support of an itemset by using a subtree
 	 * defined by its root.
-	 * 
+	 *
 	 * Note: this is implemented based on the algorithm "count" of Table 2 in
 	 * the paper by Kubat et al.
-	 * 
+	 *
 	 * <p>
 	 * Note that there was a problem with the algorithm in the paper. I had to
 	 * change > to < in : ci.itemset[ci.itemset.length -1] < s[s.length -1]).
-	 * 
+	 *
 	 * @param s
 	 *            the itemset
 	 * @param root
@@ -873,7 +869,7 @@ public class ItemsetTree {
 
 	/**
 	 * Check if an itemset is contained in another
-	 * 
+	 *
 	 * @param itemset1
 	 *            the first itemset
 	 * @param itemset2

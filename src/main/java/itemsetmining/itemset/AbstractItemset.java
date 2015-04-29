@@ -5,9 +5,6 @@ import java.util.AbstractCollection;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Set;
-
-import com.google.common.collect.Sets;
 
 public abstract class AbstractItemset extends AbstractCollection<Integer>
 		implements Serializable {
@@ -15,20 +12,6 @@ public abstract class AbstractItemset extends AbstractCollection<Integer>
 
 	/** the set of items **/
 	protected BitSet items;
-
-	/**
-	 * Get the items as a Set
-	 *
-	 * @return the items
-	 * @deprecated slow
-	 */
-	@Deprecated
-	public Set<Integer> getItems() {
-		final Set<Integer> listItems = Sets.newHashSet();
-		for (int i = items.nextSetBit(0); i >= 0; i = items.nextSetBit(i + 1))
-			listItems.add(i);
-		return listItems;
-	}
 
 	/**
 	 * Add given itemset to this itemset

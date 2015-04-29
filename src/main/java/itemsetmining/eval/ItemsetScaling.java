@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -21,8 +22,6 @@ import java.util.logging.Level;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.io.output.TeeOutputStream;
-
-import com.beust.jcommander.internal.Sets;
 
 public class ItemsetScaling {
 
@@ -160,11 +159,10 @@ public class ItemsetScaling {
 	 * Count the number of items in the itemsets (itemsets need not be
 	 * independent)
 	 */
-	@SuppressWarnings("deprecation")
 	public static int countNoItems(final Set<Itemset> itemsets) {
-		final Set<Integer> items = Sets.newHashSet();
+		final Set<Integer> items = new HashSet<>();
 		for (final Itemset itemset : itemsets)
-			items.addAll(itemset.getItems());
+			items.addAll(itemset);
 		return items.size();
 	}
 
@@ -174,7 +172,7 @@ public class ItemsetScaling {
 
 		int noTransactions = 0;
 		double sparsity = 0;
-		final Set<Integer> singletons = Sets.newHashSet();
+		final Set<Integer> singletons = new HashSet<>();
 		final LineIterator it = FileUtils.lineIterator(dbFile, "UTF-8");
 		while (it.hasNext()) {
 			final String[] items = it.nextLine().trim().split(" ");
