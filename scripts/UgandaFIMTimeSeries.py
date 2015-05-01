@@ -6,7 +6,7 @@ import numpy as np
 import linecache as lc
 import pickle
 import brewer2mpl
-from datetime import datetime
+from datetime import datetime, timedelta
 from scipy.stats import itemfreq
 
 top_itemsets = 6
@@ -51,8 +51,6 @@ f.close()
 ind = sorted(range(len(itemsets)), key=lambda k: -setsupps[k])
 isorted = np.array(itemsets)[ind]
 ssorted = np.array(setsupps)[ind]
-print isorted
-print ssorted
 itemsets = itemsets[0:top_itemsets]
 setsupps = setsupps[0:top_itemsets]
 
@@ -80,12 +78,21 @@ for itemset in itemsets:
     decodedItemset = ', '.join(decodedItems)
     legend.append(decodedItemset)
 
-# Aggregate itemsets by day and plot across time
+# Aggregate itemsets by day and plot across time, filling in gaps with zeros
+date_list = np.array([datetime.strptime('2012-12-31','%Y-%m-%d') + timedelta(days=k) for k in range(92)])
 for i in range(len(itemsets)):
     
+    freqs_with_zeros = np.zeros(92)
     freqs = itemfreq(np.array(itemset_days[i]))
-    print freqs
-    plt.plot(freqs[:,0],freqs[:,1],linewidth=2)
+    for k in range(92):
+        for row in freqs:
+            if(date_list[k] == row[0]):
+                freqs_with_zeros[k] = row[1]
+                break
+    print legend[i]
+    print date_list
+    print freqs_with_zeros        
+    plt.plot(date_list,freqs_with_zeros,linewidth=2)
 
 plt.ylabel('Mentions per day',fontsize=16)
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m/%Y'))
@@ -101,7 +108,6 @@ ax.set_position([box.x0, box.y0,
                  box.width, box.height * 0.8])
 
 # Put a legend above current axis
-legend[0] = 'soul, rest, peac'
 ax.legend(legend,loc='lower center', bbox_to_anchor=(0.485, 1.05),
           fancybox=True, ncol=3, fontsize=16)
 
@@ -109,6 +115,7 @@ ax.legend(legend,loc='lower center', bbox_to_anchor=(0.485, 1.05),
 min_val = mdates.date2num(datetime.strptime('31/12/2012','%d/%m/%Y'))
 max_val = mdates.date2num(datetime.strptime('01/04/2013','%d/%m/%Y'))
 ax.set_xlim( ( min_val, max_val ) ) 
+ax.set_ylim( ( 0, 50 ) ) 
 
 plt.show()
 
