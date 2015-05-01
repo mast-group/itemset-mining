@@ -43,7 +43,7 @@ public class CondensedFrequentItemsetMining {
 		final AlgoCharm_Bitset algo = new AlgoCharm_Bitset();
 		final Itemsets patterns = algo.runAlgorithm(saveFile, database,
 				minSupp, true, 10000);
-		// algo.printStats();
+		algo.printStats();
 		// patterns.printItemsets(database.size());
 
 		return toMap(patterns);
@@ -63,9 +63,11 @@ public class CondensedFrequentItemsetMining {
 		final AlgoCharm_Bitset algo_closed = new AlgoCharm_Bitset();
 		final Itemsets closed_patterns = algo_closed.runAlgorithm(null,
 				database, minSupp, true, 10000);
+		algo_closed.printStats();
 
 		final AlgoCharmMFI algo = new AlgoCharmMFI();
 		final Itemsets patterns = algo.runAlgorithm(saveFile, closed_patterns);
+		algo.printStats(database.size());
 
 		return toMap(patterns);
 	}

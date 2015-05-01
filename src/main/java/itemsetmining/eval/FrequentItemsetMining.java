@@ -1,6 +1,7 @@
 package itemsetmining.eval;
 
 import itemsetmining.itemset.Itemset;
+import itemsetmining.itemset.Rule;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,19 +31,18 @@ public class FrequentItemsetMining {
 	public static void main(final String[] args) throws IOException {
 
 		// FIM parameters
-		final String dataset = "uganda";
-		final double minSupp = 0.002; // relative support
+		final String dataset = "abstracts";
+		final double minSupp = 0.06; // relative support
+		final double minConf = 0.1;
+		final double minLift = 0.1;
 		final String dbPath = "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/Datasets/Succintly/"
 				+ dataset + ".dat";
-		final String saveFile = "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/FIM/"
+		final String saveFile = "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/FIM/Rules/"
 				+ dataset + ".txt";
 
-		mineFrequentItemsetsFPGrowth(dbPath, saveFile, minSupp);
-		// generateAssociationRules(itemsets, dbSize, null, 0, 0);
-		final SortedMap<Itemset, Integer> freqItemsets = readFrequentItemsets(new File(
-				saveFile));
-		System.out.println("\nFIM Itemsets");
-		System.out.println("No itemsets: " + freqItemsets.size());
+		// mineFrequentItemsetsFPGrowth(dbPath, saveFile, minSupp);
+		mineAssociationRulesFPGrowth(dbPath, saveFile, minSupp, minConf,
+				minLift);
 
 	}
 
@@ -56,7 +56,7 @@ public class FrequentItemsetMining {
 
 		final AlgoFPGrowth algo = new AlgoFPGrowth();
 		final Itemsets patterns = algo.runAlgorithm(TMPDB, saveFile, minSupp);
-		// algo.printStats();
+		algo.printStats();
 		// patterns.printItemsets(algo.getDatabaseSize());
 
 		return toMap(patterns);
@@ -78,16 +78,24 @@ public class FrequentItemsetMining {
 		return toMap(patterns);
 	}
 
-	/** Generate association rules from FIM itemsets */
-	public static AssocRules generateAssociationRules(final Itemsets patterns,
-			final int databaseSize, final String saveFile,
-			final double minConf, final double minLift) throws IOException {
+	/** Mine association rules from FIM itemsets using FPGrowth */
+	public static AssocRules mineAssociationRulesFPGrowth(final String dataset,
+			final String saveFile, final double minSupp, final double minConf,
+			final double minLift) throws IOException {
 
-		final AlgoAgrawalFaster94 algo = new AlgoAgrawalFaster94();
-		final AssocRules rules = algo.runAlgorithm(patterns, saveFile,
-				databaseSize, minConf, minLift);
-		if (saveFile == null)
-			rules.printRulesWithLift(databaseSize);
+		// Remove transaction duplicates and sort items ascending
+		dbTool.convert(dataset, TMPDB);
+
+		final AlgoFPGrowth algo = new AlgoFPGrowth();
+		final Itemsets patterns = algo.runAlgorithm(TMPDB, null, minSupp);
+		algo.printStats();
+		// patterns.printItemsets(algo.getDatabaseSize());
+
+		final AlgoAgrawalFaster94 algo2 = new AlgoAgrawalFaster94();
+		final AssocRules rules = algo2.runAlgorithm(patterns, saveFile,
+				algo.getDatabaseSize(), minConf, minLift);
+		algo2.printStats();
+		// rules.printRulesWithLift(algo.getDatabaseSize());
 
 		return rules;
 	}
@@ -135,6 +143,42 @@ public class FrequentItemsetMining {
 				.onResultOf(Functions.forMap(itemsets))
 				.compound(Ordering.usingToString());
 		return ImmutableSortedMap.copyOf(itemsets, comparator);
+	}
+
+	/** Read in association rules (sorted by lift) */
+	public static SortedMap<Rule, Integer> readAssociationRules(
+			final File output) throws IOException {
+		final HashMap<Rule, Integer> rules = new HashMap<>();
+
+		final LineIterator it = FileUtils.lineIterator(output);
+		while (it.hasNext()) {
+			final String line = it.nextLine();
+			if (!line.trim().isEmpty()) {
+				String[] splitLine = line.split(" #SUP: ");
+				final String[] rule = splitLine[0].split(" ==> ");
+				final Itemset antecedent = new Itemset();
+				for (final String item : rule[0].split(" "))
+					antecedent.add(Integer.parseInt(item));
+				final Itemset consequent = new Itemset();
+				for (final String item : rule[1].split(" "))
+					consequent.add(Integer.parseInt(item));
+				splitLine = splitLine[1].split(" #CONF: ");
+				final int supp = Integer.parseInt(splitLine[0]);
+				splitLine = splitLine[1].split(" #LIFT: ");
+				// final double conf = Double.parseDouble(splitLine[0]);
+				final double lift = Double.parseDouble(splitLine[1].trim());
+				rules.put(new Rule(antecedent, consequent, lift), supp);
+			}
+		}
+		// Sort rules by lift
+		final Ordering<Rule> comparator = new Ordering<Rule>() {
+			@Override
+			public int compare(final Rule rule1, final Rule rule2) {
+				return -Double.compare(rule1.getProbability(),
+						rule2.getProbability());
+			}
+		}.compound(Ordering.usingToString());
+		return ImmutableSortedMap.copyOf(rules, comparator);
 	}
 
 }
