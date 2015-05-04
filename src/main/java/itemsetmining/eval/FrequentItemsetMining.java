@@ -1,7 +1,7 @@
 package itemsetmining.eval;
 
 import itemsetmining.itemset.Itemset;
-import itemsetmining.itemset.Rule;
+import itemsetmining.rule.Rule;
 
 import java.io.File;
 import java.io.IOException;

@@ -2,10 +2,10 @@ package itemsetmining.main;
 
 import itemsetmining.itemset.Itemset;
 import itemsetmining.itemset.ItemsetTree;
-import itemsetmining.itemset.Rule;
 import itemsetmining.main.InferenceAlgorithms.InferGreedy;
 import itemsetmining.main.InferenceAlgorithms.InferenceAlgorithm;
 import itemsetmining.main.SparkItemsetMining.LogLevelConverter;
+import itemsetmining.rule.Rule;
 import itemsetmining.transaction.Transaction;
 import itemsetmining.transaction.TransactionList;
 import itemsetmining.util.Logging;

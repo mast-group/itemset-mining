@@ -53,6 +53,9 @@ public class ItemsetTree {
 	// items with their supports (for ordering items in the tree)
 	private final Multiset<Integer> items;
 
+	// number of transactions in database used to build this tree
+	private int noTransactions = -1;
+
 	// / Comparator for ordering items by descending order of support
 	private final Comparator<Integer> itemComparator = new Comparator<Integer>() {
 		@Override
@@ -163,6 +166,7 @@ public class ItemsetTree {
 		root = new ItemsetTreeNode(null, 0);
 
 		// Scan the database to read the transactions
+		int count = 0;
 		final LineIterator it = FileUtils.lineIterator(inputFile, "UTF-8");
 		while (it.hasNext()) {
 
@@ -176,14 +180,16 @@ public class ItemsetTree {
 
 			// add transaction to the tree
 			addTransaction(line);
-
+			count++;
 		}
 		// close the input file
 		LineIterator.closeQuietly(it);
 
+		// set the number of transactions
+		noTransactions = count;
+
 		// check the memory usage
 		MemoryLogger.getInstance().checkMemory();
-		// close the file
 		endTimestamp = System.currentTimeMillis();
 	}
 
@@ -209,6 +215,7 @@ public class ItemsetTree {
 		root = new ItemsetTreeNode(null, 0);
 
 		// Scan the database to read the transactions
+		int count = 0;
 		final BufferedReader reader = new BufferedReader(new InputStreamReader(
 				hdfs.open(new Path(hdfsPath))));
 		String line;
@@ -223,14 +230,16 @@ public class ItemsetTree {
 
 			// add transaction to the tree
 			addTransaction(line);
-
+			count++;
 		}
 		// close the input file
 		reader.close();
 
+		// set the number of transactions
+		noTransactions = count;
+
 		// check the memory usage
 		MemoryLogger.getInstance().checkMemory();
-		// close the file
 		endTimestamp = System.currentTimeMillis();
 	}
 
@@ -805,7 +814,7 @@ public class ItemsetTree {
 	}
 
 	/**
-	 * Get the support of a given itemset set.
+	 * Get the support of the given itemset.
 	 *
 	 * @param set
 	 *            the itemset
@@ -815,6 +824,29 @@ public class ItemsetTree {
 		final int[] sortedItems = set.stream().sorted(itemComparator)
 				.mapToInt(i -> i).toArray(); // sort by descending support
 		return count(sortedItems, root, new int[0]); // call count method
+	}
+
+	/**
+	 * Get the relative support of the given itemset.
+	 *
+	 * @param set
+	 *            the itemset
+	 * @return the relative support as a double.
+	 */
+	public double getRelativeSupportOfItemset(final Itemset set) {
+		final int[] sortedItems = set.stream().sorted(itemComparator)
+				.mapToInt(i -> i).toArray(); // sort by descending support
+		// call count method
+		return (double) count(sortedItems, root, new int[0]) / noTransactions;
+	}
+
+	/**
+	 * Get the number of transactions in the database used to build this tree
+	 * 
+	 * @return the number of transactions
+	 */
+	public int getNoTransactions() {
+		return noTransactions;
 	}
 
 	/**

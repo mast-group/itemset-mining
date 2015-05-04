@@ -1,9 +1,10 @@
-package itemsetmining.eval;
+package itemsetmining.eval.rules;
 
+import itemsetmining.eval.FrequentItemsetMining;
 import itemsetmining.itemset.Itemset;
 import itemsetmining.itemset.ItemsetTree;
-import itemsetmining.itemset.Rule;
 import itemsetmining.main.ItemsetMining;
+import itemsetmining.rule.Rule;
 
 import java.io.BufferedReader;
 import java.io.File;
