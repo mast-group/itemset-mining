@@ -452,8 +452,6 @@ public class ItemsetTree {
 	 *            the other itemset named "s"
 	 * @return the itemset
 	 */
-	// TODO Efficiency improvement: add loop breaks due to decreasing support
-	// ordering (cf. original implementation in MemoryEfficientItemsetTree)
 	private int[] copyItemsetWithoutItemsFromArrays(final int[] r,
 			final int[] prefix, final int[] s) {
 
@@ -470,6 +468,12 @@ public class ItemsetTree {
 					if (pvalue == rvalue) {
 						// skip this item from r
 						continue loop1;
+						// if the current item from prefix is larger than (wrt
+						// descending support ordering) the current item from r,
+						// then break because itemsets are ordered so there will
+						// be no match.
+					} else if (itemComparator.compare(pvalue, rvalue) > 0) {
+						break;
 					}
 				}
 			}
@@ -482,6 +486,12 @@ public class ItemsetTree {
 					if (rvalue == svalue) {
 						// skip it (don't add it to the new itemset)
 						continue loop1;
+						// if the current item from prefix is larger than (wrt
+						// descending support ordering) the current item from r,
+						// then break because itemsets are ordered so there will
+						// be no match.
+					} else if (itemComparator.compare(svalue, rvalue) > 0) {
+						break;
 					}
 				}
 			}
@@ -506,8 +516,6 @@ public class ItemsetTree {
 	 *            the second itemset
 	 * @return the new itemset
 	 */
-	// TODO Efficiency improvement: add loop breaks due to decreasing support
-	// ordering (cf. original implementation in MemoryEfficientItemsetTree)
 	private int[] copyItemsetWithoutItemsFrom(final int[] itemset1,
 			final int[] itemset2) {
 		// if the second itemset is null, just return the first itemset
@@ -526,6 +534,12 @@ public class ItemsetTree {
 				// from itemset1 to the new itemset
 				if (i2value == i1value) {
 					continue loop1;
+					// otherwise, if the current item from "itemset2"
+					// is larger than (wrt descending support ordering) the
+					// current item from "itemset1" there will be no match
+					// because itemsets are ordered .
+				} else if (itemComparator.compare(i2value, i1value) > 0) {
+					break;
 				}
 			}
 			// if the current item from itemset1 was not in itemset2,
@@ -842,7 +856,7 @@ public class ItemsetTree {
 
 	/**
 	 * Get the number of transactions in the database used to build this tree
-	 * 
+	 *
 	 * @return the number of transactions
 	 */
 	public int getNoTransactions() {
