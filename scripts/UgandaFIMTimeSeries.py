@@ -115,7 +115,7 @@ ax.legend(legend,loc='lower center', bbox_to_anchor=(0.485, 1.05),
 min_val = mdates.date2num(datetime.strptime('31/12/2012','%d/%m/%Y'))
 max_val = mdates.date2num(datetime.strptime('01/04/2013','%d/%m/%Y'))
 ax.set_xlim( ( min_val, max_val ) ) 
-ax.set_ylim( ( 0, 50 ) ) 
+ax.set_ylim( ( 0, 80 ) ) 
 
 plt.show()
 

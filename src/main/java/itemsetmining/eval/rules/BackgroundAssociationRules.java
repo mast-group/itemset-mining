@@ -8,17 +8,14 @@ import itemsetmining.rule.Rule;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map.Entry;
 
 import com.google.common.collect.ImmutableSortedMap;
 
 public class BackgroundAssociationRules {
 
-	private static final int topN = 10;
+	private static final int topN = 100;
 	private static final String baseDir = "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/";
-
-	private static final double MIN_LIFT = 2.0;
-	private static final double MAX_LIFT = 3.0;
+	private static final double LIFT_DIFF = 2.0;
 
 	public static void main(final String[] args) throws IOException {
 
@@ -43,7 +40,7 @@ public class BackgroundAssociationRules {
 
 		// Calculate redundancy
 		double redundancyPerc = calculateRedundancy(tree, intRules);
-		System.out.println("\nIIM Redundnacy: " + redundancyPerc * 100 + "%");
+		System.out.println("\nIIM Redundancy: " + redundancyPerc * 100 + "%");
 
 		// Read in FIM Association Rules
 		final ImmutableSortedMap<Rule, Integer> freqRules = (ImmutableSortedMap<Rule, Integer>) FrequentItemsetMining
@@ -54,7 +51,7 @@ public class BackgroundAssociationRules {
 
 		// Calculate redundancy
 		redundancyPerc = calculateRedundancy(tree, freqRules);
-		System.out.println("\nFIM Redundnacy: " + redundancyPerc * 100 + "%");
+		System.out.println("\nFIM Redundancy: " + redundancyPerc * 100 + "%");
 	}
 
 	private static double calculateRedundancy(final ItemsetTree tree,
@@ -62,13 +59,14 @@ public class BackgroundAssociationRules {
 			throws IOException {
 		int countRedundant = 0;
 		int count = 0;
-		for (final Entry<Rule, Integer> entry : intRules.entrySet()) {
-			final Rule rule = entry.getKey();
+		for (final Rule rule : intRules.keySet()) {
+			// final Rule rule = entry.getKey();
 			// final Itemset antecedent = rule.getAntecedent();
 			// final Itemset consequent = rule.getConsequent();
+			System.out.println(rule);
 			final double oneLift = calculateOneLift(rule, tree);
-			// System.out.println("Lift: " + rule.getProbability());
-			// System.out.println("One Lift: " + oneLift);
+			System.out.println("Lift: " + rule.getProbability());
+			System.out.println("One Lift: " + oneLift);
 			// final double confidence = calculateConfidence(antecedent,
 			// consequent, tree, noTransactions);
 			// System.out.println("Confidence: " + confidence);
@@ -86,12 +84,9 @@ public class BackgroundAssociationRules {
 		return (double) countRedundant / count;
 	}
 
-	private static boolean isRedundant(Rule rule, double oneLift) {
-		double lift = rule.getProbability();
-		if ((lift > MAX_LIFT) && (1 <= oneLift) && (oneLift < MIN_LIFT))
-			return true;
-		else if ((lift < -1 * MAX_LIFT) && (1 >= oneLift)
-				&& (oneLift > -1 * MIN_LIFT))
+	private static boolean isRedundant(final Rule rule, final double oneLift) {
+		final double lift = rule.getProbability();
+		if (Math.abs(lift - oneLift) > LIFT_DIFF)
 			return true;
 		return false;
 	}
