@@ -113,11 +113,11 @@ public class ItemsetMining extends ItemsetMiningCore {
 
 		// Echo input parameters
 		logger.info("========== INTERESTING ITEMSET MINING ============");
-		logger.info(" Time: "
+		logger.info("\n Time: "
 				+ new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss")
 						.format(new Date()));
-		logger.info(" Inputs: -f " + inputFile + " -s " + maxStructureSteps
-				+ " -i " + maxEMIterations + " -r " + MAX_RUNTIME / 60_000);
+		logger.info("\n Inputs: -f " + inputFile + " -s " + maxStructureSteps
+				+ " -i " + maxEMIterations + " -r " + MAX_RUNTIME / 60_000 + "\n");
 
 		// Read in transaction database
 		final TransactionList transactions = readTransactions(inputFile);

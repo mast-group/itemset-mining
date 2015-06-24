@@ -111,13 +111,13 @@ public class SparkItemsetMining extends ItemsetMiningCore {
 
 		// Echo input parameters
 		logger.info("========== SPARK INTERESTING ITEMSET MINING ============");
-		logger.info(" Time: "
+		logger.info("\n Time: "
 				+ new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss")
 						.format(new Date()));
-		logger.info(" Inputs: -f " + inputFile + " -s " + maxStructureSteps
+		logger.info("\n Inputs: -f " + inputFile + " -s " + maxStructureSteps
 				+ " -i " + maxEMIterations + " -c "
 				+ sc.getLocalProperty("spark.cores.max") + " -r " + MAX_RUNTIME
-				/ 60_000);
+				/ 60_000 + "\n");
 
 		// Copy transaction database to hdfs
 		final String datasetPath = "hdfs://" + MASTER + ".inf.ed.ac.uk:54310/"
