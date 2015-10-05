@@ -49,7 +49,7 @@ public class TransactionGenerator {
 
 				// Champagne & Caviar
 				final Itemset s12 = new Itemset(maxElement + 1, maxElement + 2);
-				final double p12 = 0.01 * scaling;
+				final double p12 = 0.05 * scaling;
 				itemsets.put(s12, p12);
 				maxElement += 2;
 

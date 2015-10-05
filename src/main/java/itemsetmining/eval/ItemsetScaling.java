@@ -33,7 +33,7 @@ public class ItemsetScaling {
 	/** Set of mined itemsets to use for background */
 	private static final String name = "plants-based";
 	private static final File itemsetLog = new File(
-			"/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/Logs/plants-20.10.2014-11:12:45.log");
+			"/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/Logs/IIM-plants-23.09.2015-06:45:55.log");
 
 	/** Spark Settings */
 	private static final boolean useSpark = false;
@@ -133,7 +133,7 @@ public class ItemsetScaling {
 		cmd[5] = " -l " + LOG_LEVEL;
 		cmd[6] = " -r " + MAX_RUNTIME;
 		cmd[7] = " -t true";
-		MTVItemsetMining.runScript(cmd);
+		StatisticalItemsetMining.runScript(cmd);
 	}
 
 	public static void generateSyntheticDatabase(final int noTransactions,

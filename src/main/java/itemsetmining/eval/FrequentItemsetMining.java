@@ -1,16 +1,24 @@
 package itemsetmining.eval;
 
-import itemsetmining.itemset.Itemset;
-import itemsetmining.rule.Rule;
+import static java.util.function.Function.identity;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
+
+import com.google.common.base.Functions;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Ordering;
 
 import ca.pfv.spmf.algorithms.associationrules.agrawal94_association_rules.AlgoAgrawalFaster94;
 import ca.pfv.spmf.algorithms.associationrules.agrawal94_association_rules.AssocRules;
@@ -18,14 +26,13 @@ import ca.pfv.spmf.algorithms.frequentpatterns.apriori.AlgoApriori;
 import ca.pfv.spmf.algorithms.frequentpatterns.fpgrowth.AlgoFPGrowth;
 import ca.pfv.spmf.patterns.itemset_array_integers_with_count.Itemsets;
 import ca.pfv.spmf.tools.other_dataset_tools.FixTransactionDatabaseTool;
-
-import com.google.common.base.Functions;
-import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Ordering;
+import itemsetmining.itemset.Itemset;
+import itemsetmining.itemset.ItemsetTree;
+import itemsetmining.main.ItemsetMining;
+import itemsetmining.rule.Rule;
 
 public class FrequentItemsetMining {
 
-	private static final String TMPDB = "/tmp/fixed-dataset.dat";
 	private static final FixTransactionDatabaseTool dbTool = new FixTransactionDatabaseTool();
 
 	public static void main(final String[] args) throws IOException {
@@ -35,27 +42,24 @@ public class FrequentItemsetMining {
 		final double minSupp = 0.06; // relative support
 		final double minConf = 0.1;
 		final double minLift = 0.1;
-		final String dbPath = "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/Datasets/Succintly/"
-				+ dataset + ".dat";
-		final String saveFile = "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/FIM/Rules/"
-				+ dataset + ".txt";
+		final String dbPath = "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/Datasets/Succintly/" + dataset + ".dat";
+		final String saveFile = "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/FIM/Rules/" + dataset + ".txt";
 
 		// mineFrequentItemsetsFPGrowth(dbPath, saveFile, minSupp);
-		mineAssociationRulesFPGrowth(dbPath, saveFile, minSupp, minConf,
-				minLift);
+		mineAssociationRulesFPGrowth(dbPath, saveFile, minSupp, minConf, minLift);
 
 	}
 
 	/** Run FPGrowth algorithm */
-	public static SortedMap<Itemset, Integer> mineFrequentItemsetsFPGrowth(
-			final String dataset, final String saveFile, final double minSupp)
-			throws IOException {
+	public static SortedMap<Itemset, Integer> mineFrequentItemsetsFPGrowth(final String dataset, final String saveFile,
+			final double minSupp) throws IOException {
 
 		// Remove transaction duplicates and sort items ascending
-		dbTool.convert(dataset, TMPDB);
+		final File TMPDB = File.createTempFile("fixed-dataset", ".dat");
+		dbTool.convert(dataset, TMPDB.getAbsolutePath());
 
 		final AlgoFPGrowth algo = new AlgoFPGrowth();
-		final Itemsets patterns = algo.runAlgorithm(TMPDB, saveFile, minSupp);
+		final Itemsets patterns = algo.runAlgorithm(TMPDB.getAbsolutePath(), saveFile, minSupp);
 		algo.printStats();
 		// patterns.printItemsets(algo.getDatabaseSize());
 
@@ -63,15 +67,15 @@ public class FrequentItemsetMining {
 	}
 
 	/** Run Apriori algorithm */
-	public static SortedMap<Itemset, Integer> mineFrequentItemsetsApriori(
-			final String dataset, final String saveFile, final double minSupp)
-			throws IOException {
+	public static SortedMap<Itemset, Integer> mineFrequentItemsetsApriori(final String dataset, final String saveFile,
+			final double minSupp) throws IOException {
 
 		// Remove transaction duplicates and sort items ascending
-		dbTool.convert(dataset, TMPDB);
+		final File TMPDB = File.createTempFile("fixed-dataset", ".dat");
+		dbTool.convert(dataset, TMPDB.getAbsolutePath());
 
 		final AlgoApriori algo = new AlgoApriori();
-		final Itemsets patterns = algo.runAlgorithm(minSupp, TMPDB, saveFile);
+		final Itemsets patterns = algo.runAlgorithm(minSupp, TMPDB.getAbsolutePath(), saveFile);
 		// algo.printStats();
 		// patterns.printItemsets(algo.getDatabaseSize());
 
@@ -79,21 +83,20 @@ public class FrequentItemsetMining {
 	}
 
 	/** Mine association rules from FIM itemsets using FPGrowth */
-	public static AssocRules mineAssociationRulesFPGrowth(final String dataset,
-			final String saveFile, final double minSupp, final double minConf,
-			final double minLift) throws IOException {
+	public static AssocRules mineAssociationRulesFPGrowth(final String dataset, final String saveFile,
+			final double minSupp, final double minConf, final double minLift) throws IOException {
 
 		// Remove transaction duplicates and sort items ascending
-		dbTool.convert(dataset, TMPDB);
+		final File TMPDB = File.createTempFile("fixed-dataset", ".dat");
+		dbTool.convert(dataset, TMPDB.getAbsolutePath());
 
 		final AlgoFPGrowth algo = new AlgoFPGrowth();
-		final Itemsets patterns = algo.runAlgorithm(TMPDB, null, minSupp);
+		final Itemsets patterns = algo.runAlgorithm(TMPDB.getAbsolutePath(), null, minSupp);
 		algo.printStats();
 		// patterns.printItemsets(algo.getDatabaseSize());
 
 		final AlgoAgrawalFaster94 algo2 = new AlgoAgrawalFaster94();
-		final AssocRules rules = algo2.runAlgorithm(patterns, saveFile,
-				algo.getDatabaseSize(), minConf, minLift);
+		final AssocRules rules = algo2.runAlgorithm(patterns, saveFile, algo.getDatabaseSize(), minConf, minLift);
 		algo2.printStats();
 		// rules.printRulesWithLift(algo.getDatabaseSize());
 
@@ -109,20 +112,17 @@ public class FrequentItemsetMining {
 			for (final List<ca.pfv.spmf.patterns.itemset_array_integers_with_count.Itemset> level : patterns
 					.getLevels()) {
 				for (final ca.pfv.spmf.patterns.itemset_array_integers_with_count.Itemset itemset : level)
-					itemsets.put(new Itemset(itemset.getItems()),
-							itemset.getAbsoluteSupport());
+					itemsets.put(new Itemset(itemset.getItems()), itemset.getAbsoluteSupport());
 			}
 			// Sort itemsets by support
-			final Ordering<Itemset> comparator = Ordering.natural().reverse()
-					.onResultOf(Functions.forMap(itemsets))
+			final Ordering<Itemset> comparator = Ordering.natural().reverse().onResultOf(Functions.forMap(itemsets))
 					.compound(Ordering.usingToString());
 			return ImmutableSortedMap.copyOf(itemsets, comparator);
 		}
 	}
 
 	/** Read in frequent itemsets */
-	public static SortedMap<Itemset, Integer> readFrequentItemsets(
-			final File output) throws IOException {
+	public static SortedMap<Itemset, Integer> readFrequentItemsets(final File output) throws IOException {
 		final HashMap<Itemset, Integer> itemsets = new HashMap<>();
 
 		final LineIterator it = FileUtils.lineIterator(output);
@@ -139,15 +139,47 @@ public class FrequentItemsetMining {
 			}
 		}
 		// Sort itemsets by support
-		final Ordering<Itemset> comparator = Ordering.natural().reverse()
-				.onResultOf(Functions.forMap(itemsets))
+		final Ordering<Itemset> comparator = Ordering.natural().reverse().onResultOf(Functions.forMap(itemsets))
 				.compound(Ordering.usingToString());
 		return ImmutableSortedMap.copyOf(itemsets, comparator);
 	}
 
+	/** Read in frequent itemsets ranked according to chi-squared */
+	public static SortedMap<Itemset, Double> readFrequentItemsetsChiSquared(final File output, final String dataset)
+			throws IOException {
+		final File inputFile = new File(dataset);
+		final Multiset<Integer> singletons = ItemsetMining.scanDatabaseToDetermineFrequencyOfSingleItems(inputFile);
+		final ItemsetTree tree = new ItemsetTree(singletons);
+		tree.buildTree(inputFile);
+
+		// Get itemsets
+		final Set<Itemset> itemsets = new HashSet<>();
+		final LineIterator it = FileUtils.lineIterator(output);
+		while (it.hasNext()) {
+			final String line = it.nextLine();
+			if (!line.trim().isEmpty()) {
+				final String[] splitLine = line.split("#SUP:");
+				final String[] items = splitLine[0].split(" ");
+				final Itemset itemset = new Itemset();
+				for (final String item : items)
+					itemset.add(Integer.parseInt(item.trim()));
+				// final int supp = Integer.parseInt(splitLine[1].trim());
+				itemsets.add(itemset);
+			}
+		}
+
+		// Parallel chi-squared calculation (yes it's that slow)
+		final Map<Itemset, Double> itemsetsMap = itemsets.parallelStream()
+				.collect(Collectors.toMap(identity(), i -> tree.getChiSquaredOfItemset(i, singletons)));
+
+		// Sort itemsets by chi-squared
+		final Ordering<Itemset> comparator = Ordering.natural().reverse().onResultOf(Functions.forMap(itemsetsMap))
+				.compound(Ordering.usingToString());
+		return ImmutableSortedMap.copyOf(itemsetsMap, comparator);
+	}
+
 	/** Read in association rules (sorted by lift) */
-	public static SortedMap<Rule, Integer> readAssociationRules(
-			final File output) throws IOException {
+	public static SortedMap<Rule, Integer> readAssociationRules(final File output) throws IOException {
 		final HashMap<Rule, Integer> rules = new HashMap<>();
 
 		final LineIterator it = FileUtils.lineIterator(output);
@@ -174,8 +206,7 @@ public class FrequentItemsetMining {
 		final Ordering<Rule> comparator = new Ordering<Rule>() {
 			@Override
 			public int compare(final Rule rule1, final Rule rule2) {
-				return -Double.compare(rule1.getProbability(),
-						rule2.getProbability());
+				return -Double.compare(rule1.getProbability(), rule2.getProbability());
 			}
 		}.compound(Ordering.usingToString());
 		return ImmutableSortedMap.copyOf(rules, comparator);

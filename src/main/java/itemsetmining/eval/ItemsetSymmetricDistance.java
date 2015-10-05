@@ -1,7 +1,6 @@
 package itemsetmining.eval;
 
-import itemsetmining.itemset.Itemset;
-import itemsetmining.main.ItemsetMiningCore;
+import static java.util.function.Function.identity;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,65 +10,111 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
 
+import com.google.common.base.Functions;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Ordering;
+
+import itemsetmining.itemset.Itemset;
+import itemsetmining.itemset.ItemsetTree;
+import itemsetmining.main.ItemsetMining;
+import itemsetmining.main.ItemsetMiningCore;
+
 public class ItemsetSymmetricDistance {
 
-	private static final int topN = 100;
+	private static int topN = 100;
 	private static final String baseDir = "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/";
 
 	public static void main(final String[] args) throws IOException {
 
-		final String[] IIMlogs = new String[] {
-				"plants-20.10.2014-11:12:45.log",
-				"mammals-24.10.2014-14:24:38.log",
-				"abstracts-21.10.2014-13:46:14.log",
-				"IIM-uganda_en_3m_filtered-14.01.2015-16:36:50.log" };
-		final String[] FIMlogs = new String[] { "plants.txt", "mammals.txt",
-				"abstracts.txt", "uganda.txt" };
+		// FIXME add uganda IIM and mammals KRIMP
+		final String[] IIMlogs = new String[] { "IIM-plants-23.09.2015-06:45:55.log",
+				"IIM-mammals-23.09.2015-07:57:39.log", "IIM-abstracts-18.09.2015-15:14:13.log", 
+				"IIM-uganda-29.09.2015-11:01:19.log"};
+		final String[] KRIMPlogs = new String[] { "plants_itemsets.txt",
+				"mammals_itemsets.txt",
+				"abstracts_itemsets.txt", "uganda_itemsets.txt" };
+		final String[] FIMlogs = new String[] { "plants-closed-fim.txt", "mammals-closed-fim.txt",
+				"abstracts-closed-fim.txt", "uganda-closed-fim.txt" };
+		final String[] datasets = new String[] { "plants", "mammals", "abstracts", "uganda" };
 
 		for (int i = 0; i < IIMlogs.length; i++) {
 
-			System.out.println("===== Dataset: "
-					+ FIMlogs[i].substring(0, FIMlogs[i].lastIndexOf('.')));
+			System.out.println("===== Dataset: " + FIMlogs[i].substring(0, FIMlogs[i].lastIndexOf('.')));
 
 			// Read in interesting itemsets
 			final Map<Itemset, Double> intItemsets = ItemsetMiningCore
 					.readIIMItemsets(new File(baseDir + "Logs/" + IIMlogs[i]));
 			System.out.println("\nIIM Itemsets\n-----------");
 			System.out.println("No itemsets: " + intItemsets.size());
-			System.out.println("No items: "
-					+ ItemsetScaling.countNoItems(intItemsets.keySet()));
+			System.out.println("No items: " + ItemsetScaling.countNoItems(intItemsets.keySet()));
 
 			// Measure symmetric difference between the two sets of itemsets
-			double avgMinDiff = calculateRedundancy(intItemsets);
+			final Set<Itemset> topIntItemsets = filterSingletons(intItemsets);
+			double avgMinDiff = calculateRedundancy(topIntItemsets);
 			System.out.println("\nAvg min sym diff: " + avgMinDiff);
 
-			// Read in MTV itemsets
-			final LinkedHashMap<Itemset, Double> mtvItemsets = MTVItemsetMining
-					.readMTVItemsets(new File(baseDir + "MTV/" + FIMlogs[i]));
-			System.out.println("\nMTV Itemsets\n------------");
-			System.out.println("No itemsets: " + mtvItemsets.size());
-			System.out.println("No items: "
-					+ ItemsetScaling.countNoItems(mtvItemsets.keySet()));
+			// Calculate spuriousness
+			double avgMaxSpur = calculateSpuriousness(topIntItemsets);
+			System.out.println("Avg no. subsets: " + avgMaxSpur);
+			
+
+			// Read in KRIMP itemsets
+			final LinkedHashMap<Itemset, Double> krimpItemsets = StatisticalItemsetMining
+					.readKRIMPItemsets(new File(baseDir + "KRIMP/" + KRIMPlogs[i]));
+			System.out.println("\nKRIMP Itemsets\n------------");
+			System.out.println("No itemsets: " + krimpItemsets.size());
+			System.out.println("No items: " + ItemsetScaling.countNoItems(krimpItemsets.keySet()));
 
 			// Measure symmetric difference between the two sets of itemsets
-			avgMinDiff = calculateRedundancy(mtvItemsets);
+			final Set<Itemset> topKrimpItemsets = filterSingletons(krimpItemsets);
+			avgMinDiff = calculateRedundancy(topKrimpItemsets);
 			System.out.println("\nAvg min sym diff: " + avgMinDiff);
+
+			// Calculate spuriousness
+			avgMaxSpur = calculateSpuriousness(topKrimpItemsets);
+			System.out.println("Avg no. subsets: " + avgMaxSpur);
+
 
 			// Read in frequent itemsets
 			final SortedMap<Itemset, Integer> freqItemsets = FrequentItemsetMining
-					.readFrequentItemsets(new File(baseDir + "FIM/"
-							+ FIMlogs[i]));
+					.readFrequentItemsets(new File(baseDir + "FIM/" + FIMlogs[i]));
 			System.out.println("\nFIM Itemsets\n------------");
 			System.out.println("No itemsets: " + freqItemsets.size());
-			System.out.println("No items: "
-					+ ItemsetScaling.countNoItems(freqItemsets.keySet()));
+			System.out.println("No items: " + ItemsetScaling.countNoItems(freqItemsets.keySet()));
+
+			// Get top 100K
+			topN = 100_000;
+			final Set<Itemset> top100KFreqItemsets = filterSingletons(freqItemsets);
+
+			// Build itemset tree
+			final File inputFile = new File(baseDir + "Datasets/Succintly/" + datasets[i] + ".dat");
+			final Multiset<Integer> singletons = ItemsetMining.scanDatabaseToDetermineFrequencyOfSingleItems(inputFile);
+			final ItemsetTree tree = new ItemsetTree(singletons);
+			tree.buildTree(inputFile);
+
+			// Parallel chi-squared calculation (yes it's that slow)
+			final Map<Itemset, Double> itemsetsMap = top100KFreqItemsets.parallelStream()
+					.collect(Collectors.toMap(identity(), it -> tree.getChiSquaredOfItemset(it, singletons)));
+
+			// Sort itemsets by chi-squared
+			final Ordering<Itemset> comparator = Ordering.natural().reverse().onResultOf(Functions.forMap(itemsetsMap))
+					.compound(Ordering.usingToString());
+			final Map<Itemset, Double> freqItemsetsChiSquared = ImmutableSortedMap.copyOf(itemsetsMap, comparator);
 
 			// Measure symmetric difference between the two sets of itemsets
-			avgMinDiff = calculateRedundancy(freqItemsets);
+			topN = 100;
+			final Set<Itemset> topFreqItemsets = filterSingletons(freqItemsetsChiSquared);
+			avgMinDiff = calculateRedundancy(topFreqItemsets);
 			System.out.println("\nAvg min sym diff: " + avgMinDiff);
+
+			// Calculate spuriousness
+			avgMaxSpur = calculateSpuriousness(topFreqItemsets);
+			System.out.println("Avg no. subsets: " + avgMaxSpur);
 
 			System.out.println();
 
@@ -77,22 +122,7 @@ public class ItemsetSymmetricDistance {
 
 	}
 
-	private static <V> double calculateRedundancy(final Map<Itemset, V> itemsets) {
-
-		// Filter out singletons
-		int count = 0;
-		final Set<Itemset> topItemsets = new HashSet<>();
-		for (final Itemset set : itemsets.keySet()) {
-			if (set.size() != 1) {
-				topItemsets.add(set);
-				count++;
-			}
-			if (count == topN)
-				break;
-		}
-		if (count < topN)
-			System.out.println("Not enough non-singleton itemsets in set: "
-					+ count);
+	private static double calculateRedundancy(final Set<Itemset> topItemsets) {
 
 		double avgMinDiff = 0;
 		for (final Itemset set1 : topItemsets) {
@@ -112,12 +142,49 @@ public class ItemsetSymmetricDistance {
 		return avgMinDiff;
 	}
 
-	private static <T> int cardSymDiff(final Collection<T> set1,
-			final Collection<T> set2) {
+	private static <T> int cardSymDiff(final Collection<T> set1, final Collection<T> set2) {
 		final int sizeUnion = CollectionUtils.union(set1, set2).size();
-		final int sizeIntersection = CollectionUtils.intersection(set1, set2)
-				.size();
+		final int sizeIntersection = CollectionUtils.intersection(set1, set2).size();
 		return (sizeUnion - sizeIntersection);
+	}
+
+	private static double calculateSpuriousness(final Set<Itemset> topItemsets) {
+
+		double avgSubseq = 0;
+		for (final Itemset set1 : topItemsets) {
+			for (final Itemset set2 : topItemsets) {
+				if (!set1.equals(set2))
+					avgSubseq += isSubset(set1, set2);
+			}
+		}
+		avgSubseq /= topItemsets.size();
+
+		return avgSubseq;
+	}
+
+	private static int isSubset(final Itemset set1, final Itemset set2) {
+		if (set2.contains(set1))
+			return 1;
+		return 0;
+	}
+
+	/** Filter out singletons */
+	private static <V> Set<Itemset> filterSingletons(final Map<Itemset, V> itemsets) {
+
+		int count = 0;
+		final Set<Itemset> topItemsets = new HashSet<>();
+		for (final Itemset set : itemsets.keySet()) {
+			if (set.size() != 1) {
+				topItemsets.add(set);
+				count++;
+			}
+			if (count == topN)
+				break;
+		}
+		if (count < 100)
+			System.out.println("Not enough non-singleton sequences in set: " + count);
+
+		return topItemsets;
 	}
 
 }
