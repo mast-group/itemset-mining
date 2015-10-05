@@ -1,12 +1,11 @@
 package itemsetmining.itemset;
 
-import itemsetmining.util.MemoryLogger;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +18,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import com.google.common.collect.Multiset;
+
+import itemsetmining.util.MemoryLogger;
 
 /**
  * This is a modified implementation of the Memory Efficient Itemset-tree as
@@ -132,8 +133,7 @@ public class ItemsetTree {
 		// Randomly pick child to traverse proportional to its itemset support
 		double p = Math.random();
 		ItemsetTreeNode child = null;
-		for (final Map.Entry<ItemsetTreeNode, Integer> entry : supports
-				.entrySet()) {
+		for (final Map.Entry<ItemsetTreeNode, Integer> entry : supports.entrySet()) {
 
 			// final double childProb = 1. / node.children.size();
 			final double childProb = entry.getValue() / sumSupport;
@@ -173,8 +173,7 @@ public class ItemsetTree {
 			final String line = it.nextLine();
 			// if the line is a comment, is empty or is a
 			// kind of metadata
-			if (line.isEmpty() == true || line.charAt(0) == '#'
-					|| line.charAt(0) == '%' || line.charAt(0) == '@') {
+			if (line.isEmpty() == true || line.charAt(0) == '#' || line.charAt(0) == '%' || line.charAt(0) == '@') {
 				continue;
 			}
 
@@ -203,8 +202,7 @@ public class ItemsetTree {
 	 *            HDFS FileSystem
 	 * @return
 	 */
-	public void buildTree(final String hdfsPath, final FileSystem hdfs)
-			throws IOException {
+	public void buildTree(final String hdfsPath, final FileSystem hdfs) throws IOException {
 		// record start time
 		startTimestamp = System.currentTimeMillis();
 
@@ -216,15 +214,13 @@ public class ItemsetTree {
 
 		// Scan the database to read the transactions
 		int count = 0;
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(
-				hdfs.open(new Path(hdfsPath))));
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(hdfs.open(new Path(hdfsPath))));
 		String line;
 		while ((line = reader.readLine()) != null) {
 
 			// if the line is a comment, is empty or is a
 			// kind of metadata
-			if (line.isEmpty() == true || line.charAt(0) == '#'
-					|| line.charAt(0) == '%' || line.charAt(0) == '@') {
+			if (line.isEmpty() == true || line.charAt(0) == '#' || line.charAt(0) == '%' || line.charAt(0) == '@') {
 				continue;
 			}
 
@@ -262,8 +258,7 @@ public class ItemsetTree {
 		}
 
 		// sort items in the itemset by descending order of support
-		final int[] sortedItemset = itemset.stream().sorted(itemComparator)
-				.mapToInt(i -> i).toArray();
+		final int[] sortedItemset = itemset.stream().sorted(itemComparator).mapToInt(i -> i).toArray();
 
 		// call the method "construct" to add the transaction to the tree
 		construct(null, root, sortedItemset, null);
@@ -281,8 +276,8 @@ public class ItemsetTree {
 	 *            the current item(s) explored in this branch of the tree until
 	 *            the current node r.
 	 */
-	private void construct(final ItemsetTreeNode parentOfR,
-			final ItemsetTreeNode r, final int[] s, final int[] prefix) {
+	private void construct(final ItemsetTreeNode parentOfR, final ItemsetTreeNode r, final int[] s,
+			final int[] prefix) {
 
 		// if the itemset in root node is the same as the one to be inserted,
 		// we just increase the support, and return.
@@ -316,8 +311,7 @@ public class ItemsetTree {
 			// create a new node for the itemset to be inserted with the support
 			// of
 			// the subtree root node + 1
-			final ItemsetTreeNode newNodeS = new ItemsetTreeNode(sprime,
-					r.support + 1);
+			final ItemsetTreeNode newNodeS = new ItemsetTreeNode(sprime, r.support + 1);
 			// set the childs and parent pointers.
 			newNodeS.children.add(r);
 			parentOfR.children.remove(r);
@@ -336,8 +330,7 @@ public class ItemsetTree {
 
 			// create a new node with that ancestor and the support of
 			// the root +1.
-			final ItemsetTreeNode newNode = new ItemsetTreeNode(l,
-					r.support + 1);
+			final ItemsetTreeNode newNode = new ItemsetTreeNode(l, r.support + 1);
 			// set the node childs and parent pointers
 			newNode.children.add(r);
 			parentOfR.children.remove(r);
@@ -375,8 +368,7 @@ public class ItemsetTree {
 
 				// create a new node between ci and r in the tree
 				// and update child /parents pointers
-				final ItemsetTreeNode newNode = new ItemsetTreeNode(sprime,
-						ci.support + 1);
+				final ItemsetTreeNode newNode = new ItemsetTreeNode(sprime, ci.support + 1);
 				newNode.children.add(ci);
 				// newNode.parent = r;
 				r.children.remove(ci);
@@ -403,24 +395,20 @@ public class ItemsetTree {
 				// the support
 				// of ci + 1
 
-				final int[] ancestorprime = copyItemsetWithoutItemsFrom(
-						ancestor, rprefix);
+				final int[] ancestorprime = copyItemsetWithoutItemsFrom(ancestor, rprefix);
 
-				final ItemsetTreeNode newNode = new ItemsetTreeNode(
-						ancestorprime, ci.support + 1);
+				final ItemsetTreeNode newNode = new ItemsetTreeNode(ancestorprime, ci.support + 1);
 				// set r as parent
 				// newNode.parent = r;
 				r.children.add(newNode);
 				// add ci as a children of the new node
-				ci.itemset = copyItemsetWithoutItemsFrom(ci.itemset,
-						ancestorprime);
+				ci.itemset = copyItemsetWithoutItemsFrom(ci.itemset, ancestorprime);
 				newNode.children.add(ci);
 				// ci.parent = newNode;
 				r.children.remove(ci);
 				// create another new node for s with a support of 1, which
 				// will be the child of the first new node
-				final int[] sprime = copyItemsetWithoutItemsFromArrays(s,
-						ancestorprime, rprefix);
+				final int[] sprime = copyItemsetWithoutItemsFromArrays(s, ancestorprime, rprefix);
 				final ItemsetTreeNode newNode2 = new ItemsetTreeNode(sprime, 1);
 				// newNode2.parent = newNode;
 				newNode.children.add(newNode2);
@@ -452,8 +440,7 @@ public class ItemsetTree {
 	 *            the other itemset named "s"
 	 * @return the itemset
 	 */
-	private int[] copyItemsetWithoutItemsFromArrays(final int[] r,
-			final int[] prefix, final int[] s) {
+	private int[] copyItemsetWithoutItemsFromArrays(final int[] r, final int[] prefix, final int[] s) {
 
 		// create an empty itemset
 		final List<Integer> rprime = new ArrayList<Integer>(r.length);
@@ -516,16 +503,14 @@ public class ItemsetTree {
 	 *            the second itemset
 	 * @return the new itemset
 	 */
-	private int[] copyItemsetWithoutItemsFrom(final int[] itemset1,
-			final int[] itemset2) {
+	private int[] copyItemsetWithoutItemsFrom(final int[] itemset1, final int[] itemset2) {
 		// if the second itemset is null, just return the first itemset
 		if (itemset2 == null) {
 			return itemset1;
 		}
 
 		// create a new itemset
-		final List<Integer> itemset1prime = new ArrayList<Integer>(
-				itemset1.length);
+		final List<Integer> itemset1prime = new ArrayList<Integer>(itemset1.length);
 		// for each item in the first itemset
 		loop1: for (final int i1value : itemset1) {
 			// for each it in the second itemset
@@ -566,8 +551,7 @@ public class ItemsetTree {
 	 * @return a new itemset which is the largest common ancestor or null if it
 	 *         is the empty set
 	 */
-	private int[] getLargestCommonAncestor(final int[] itemset1,
-			final int[] itemset2) {
+	private int[] getLargestCommonAncestor(final int[] itemset1, final int[] itemset2) {
 		// if one of the itemsets is null,
 		// return null.
 		if (itemset2 == null || itemset1 == null) {
@@ -575,8 +559,7 @@ public class ItemsetTree {
 		}
 
 		// find the minimum length of the itemsets
-		final int minI = itemset1.length < itemset2.length ? itemset1.length
-				: itemset2.length;
+		final int minI = itemset1.length < itemset2.length ? itemset1.length : itemset2.length;
 
 		int count = 0; // to count the size of the common ancestor
 
@@ -690,8 +673,7 @@ public class ItemsetTree {
 	 *            another itemset
 	 * @return true if the same otherwise false
 	 */
-	private boolean same(final int[] itemset1, final int[] prefix,
-			final int[] itemset2) {
+	private boolean same(final int[] itemset1, final int[] prefix, final int[] itemset2) {
 		if (prefix == null) {
 			return same(itemset1, itemset2);
 		}
@@ -767,19 +749,16 @@ public class ItemsetTree {
 	public void printStatistics(final Logger logger) {
 		System.gc();
 		logger.info("========== MEMORY EFFICIENT ITEMSET TREE CONSTRUCTION - STATS ============\n");
-		logger.info(" Tree construction time ~: "
-				+ (endTimestamp - startTimestamp) + " ms\n");
-		logger.info(" Max memory: " + MemoryLogger.getInstance().getMaxMemory()
-				+ " MB\n");
+		logger.info(" Tree construction time ~: " + (endTimestamp - startTimestamp) + " ms\n");
+		logger.info(" Max memory: " + MemoryLogger.getInstance().getMaxMemory() + " MB\n");
 		nodeCount = 0;
 		totalItemCountInNodes = 0;
 		sumBranchesLength = 0;
 		totalNumberOfBranches = 0;
 		recursiveStats(root, 1);
 		logger.info(" Node count: " + nodeCount + "\n");
-		logger.info(" No. items: " + totalItemCountInNodes
-				+ ", avg items per node: " + totalItemCountInNodes
-				/ ((double) nodeCount) + "\n");
+		logger.info(" No. items: " + totalItemCountInNodes + ", avg items per node: "
+				+ totalItemCountInNodes / ((double) nodeCount) + "\n");
 		logger.info("=====================================\n");
 	}
 
@@ -828,6 +807,267 @@ public class ItemsetTree {
 	}
 
 	/**
+	 * Get the chi-squared of the two itemsets
+	 *
+	 * <p>
+	 * N.B. the chi-squared distribution has one degree of freedom.
+	 */
+	public double getChiSquared(final Itemset set1, final Itemset set2, final Itemset set1And2) {
+		// sort by descending support
+		final int[] sortedItems1 = set1.stream().sorted(itemComparator).mapToInt(i -> i).toArray();
+		final int[] sortedItems2 = set2.stream().sorted(itemComparator).mapToInt(i -> i).toArray();
+		final int[] sortedItems1And2 = set1And2.stream().sorted(itemComparator).mapToInt(i -> i).toArray();
+
+		// contingency table
+		final int supp1And2 = countEmpirical(sortedItems1And2, new int[0], root, new int[0]);
+		final int supp1Not2 = countEmpirical(sortedItems1, sortedItems2, root, new int[0]);
+		final int supp2Not1 = countEmpirical(sortedItems2, sortedItems1, root, new int[0]);
+		final int supp1Nor2 = countEmpirical(new int[0], sortedItems1And2, root, new int[0]);
+
+		// row & column sums
+		final int supp1 = supp1And2 + supp1Not2;
+		final int suppNot1 = supp2Not1 + supp1Nor2;
+		final int supp2 = supp1And2 + supp2Not1;
+		final int suppNot2 = supp1Not2 + supp1Nor2;
+		final double total = supp1 + suppNot1; // avoid integer division
+
+		// calculate chi-squared
+		final double pInd1And2 = supp1 * supp2 / total;
+		final double chi1And2 = (supp1And2 - pInd1And2) * (supp1And2 - pInd1And2) / pInd1And2;
+		final double pInd1Not2 = supp1 * suppNot2 / total;
+		final double chi1Not2 = (supp1Not2 - pInd1Not2) * (supp1Not2 - pInd1Not2) / pInd1Not2;
+		final double pInd2Not1 = suppNot1 * supp2 / total;
+		final double chi2Not1 = (supp2Not1 - pInd2Not1) * (supp2Not1 - pInd2Not1) / pInd2Not1;
+		final double pInd1Nor2 = suppNot1 * suppNot2 / total;
+		final double chi1Nor2 = (supp1Nor2 - pInd1Nor2) * (supp1Nor2 - pInd1Nor2) / pInd1Nor2;
+
+		// cache support of itemset
+		cachedItemsetSupport = supp1And2;
+
+		return chi1And2 + chi1Not2 + chi2Not1 + chi1Nor2;
+	}
+
+	/** Support of last itemset tested by {@link #getChiSquared} */
+	private int cachedItemsetSupport;
+
+	/** Get support of last itemset tested by {@link #getChiSquared} */
+	public int getCachedItemsetSupport() {
+		return cachedItemsetSupport;
+	}
+
+	/**
+	 * Get the chi-squared of the given itemset.
+	 *
+	 * @param set
+	 *            the itemset
+	 * @return the chi-squared statistic.
+	 */
+	public double getChiSquaredOfItemset(final Itemset set, final Multiset<Integer> singletons) {
+		// sort by descending support
+		final int[] sortedItems = set.stream().sorted(itemComparator).mapToInt(i -> i).toArray();
+		return recursiveChiSquared(0, new BitSet(set.size()), sortedItems, singletons);
+	}
+
+	/**
+	 * Pearson's chi-squared test for itemset independence. This tests the
+	 * empirical itemset distribution against the independence model.
+	 *
+	 * <p>
+	 * N.B. the chi-squared distribution has one degree of freedom.
+	 *
+	 * @see S. Brin et al. Beyond Market Baskets: Generalizing Association Rules
+	 *      to Correlations
+	 */
+	private double recursiveChiSquared(final int n, final BitSet cell, final int[] sortedItems,
+			final Multiset<Integer> singletons) {
+		double chiSquared = 0.;
+		if (n == sortedItems.length) {
+			double pInd = noTransactions;
+			final int[] inItems = new int[cell.cardinality()];
+			final int[] outItems = new int[n - cell.cardinality()];
+			int i = 0, j = 0;
+			for (int k = 0; k < n; k++) {
+				if (cell.get(k)) {
+					inItems[i] = sortedItems[k];
+					i++;
+					pInd *= singletons.count(sortedItems[k]) / (double) noTransactions;
+				} else {
+					outItems[j] = sortedItems[k];
+					j++;
+					pInd *= (noTransactions - singletons.count(sortedItems[k])) / (double) noTransactions;
+				}
+			}
+			final double pEmp = countEmpirical(inItems, outItems, root, new int[0]);
+			chiSquared = ((pEmp - pInd) * (pEmp - pInd)) / pInd;
+		} else {
+			final BitSet celln = (BitSet) cell.clone();
+			celln.set(n);
+			chiSquared += recursiveChiSquared(n + 1, celln, sortedItems, singletons);
+			chiSquared += recursiveChiSquared(n + 1, cell, sortedItems, singletons);
+		}
+		return chiSquared;
+	}
+
+	/**
+	 * This method calculates the no. of transactions which support the itemset
+	 * 's' but do *not* support the itemset 'exc' by using a subtree defined by
+	 * its root.
+	 *
+	 * @param s
+	 *            the itemset that should be supported
+	 * @param exc
+	 *            the itemset that should *not* be supported
+	 * @param root
+	 *            the root of the subtree
+	 * @param prefix
+	 *            the prefix of the subtree
+	 * @return the support as an integer
+	 */
+	private int countEmpirical(final int[] s, final int[] exc, final ItemsetTreeNode root, final int[] prefix) {
+		if (s.length == 0)
+			return countNotAny(exc, root);
+		if (exc.length == 0)
+			return count(s, root, prefix);
+		// the variable count will be used to count the support
+		int count = 0;
+		// for each child of the root
+		for (final ItemsetTreeNode ci : root.children) {
+			// if the first item of the itemset that we are looking for
+			// is greater than (wrt descending support ordering) the first item
+			// of the child, we need to look further in that tree. Also,
+			// we can stop if any elements from exc are contained in the child.
+			final int[] ciprefix = append(prefix, ci.itemset);
+			if (itemComparator.compare(ciprefix[0], s[0]) <= 0 && !containsAny(ci.itemset, exc)) {
+
+				// if s is included in ci, add the support of ci to the current
+				// count.
+				if (includedIn(s, ciprefix)) {
+					count += ci.support;
+					// remove the support of any subtree paths that contain
+					// elements from exc
+					count -= countSubtree(exc, ci);
+				} else if (itemComparator.compare(ciprefix[ciprefix.length - 1], s[s.length - 1]) < 0) {
+					// otherwise, if the last item of ci is smaller than (wrt
+					// descending support ordering) the last item of s,
+					// then make a recursive call to explore
+					// the subtree where ci is the root
+					count += countEmpirical(s, exc, ci, ciprefix);
+				}
+			}
+		}
+		// return the total count
+		return count;
+	}
+
+	/**
+	 * Count the support of subtrees containing any element from the given set
+	 */
+	private int countSubtree(final int[] exc, final ItemsetTreeNode root) {
+		// the variable count will be used to count the support
+		int count = 0;
+		// for each child of the root
+		for (final ItemsetTreeNode ci : root.children) {
+			if (containsAny(ci.itemset, exc)) {
+				count += ci.support;
+			} else if (!(itemComparator.compare(exc[exc.length - 1], ci.itemset[0]) < 0)) {
+				// otherwise, if the last item of exc is *not* smaller than (wrt
+				// descending support ordering) the first item of the child,
+				// make a recursive call to explore the subtree with ci as root
+				count += countSubtree(exc, ci);
+			}
+		}
+		// return the total count
+		return count;
+	}
+
+	/**
+	 * This method calculates the no. transactions not containing any items from
+	 * an itemset by using a subtree defined by its root.
+	 *
+	 * @param s
+	 *            the itemset
+	 * @param root
+	 *            the root of the subtree
+	 * @return the no. transactions not containing any items from the itemset
+	 */
+	private int countNotAny(final int[] s, final ItemsetTreeNode root) {
+		// the variable count will be used to count the support
+		int count = 0;
+		// for each child of the root
+		for (final ItemsetTreeNode ci : root.children) {
+			// If the child does not contain any items from the itemset
+			if (!containsAny(ci.itemset, s)) {
+				// If the last item of the itemset is smaller than (wrt
+				// descending support ordering) the first item of the child,
+				// the child cannot contain any items from the itemset
+				if (itemComparator.compare(s[s.length - 1], ci.itemset[0]) < 0)
+					count += ci.support;
+				else {
+					// otherwise, add the support of ci to the current count
+					count += ci.support;
+					// and remove the support of any subtree paths that
+					// contain elements from exc
+					count -= countSubtree(s, ci);
+				}
+			}
+		}
+		// return the total count
+		return count;
+	}
+
+	/**
+	 * Check if an itemset contains any of the items. Assumes both arrays are
+	 * ordered.
+	 *
+	 * @param itemset
+	 *            the itemset
+	 * @param items
+	 *            the items
+	 * @return true if any of the items appear in the itemset, false otherwise
+	 */
+	private boolean containsAny(final int[] itemset, final int items[]) {
+		// If the last item in items is smaller than (wrt descending support
+		// ordering) the first item in the itemset then this is false, and
+		// similarly when the first item in items is greater than the last item
+		// in the itemset
+		if (itemComparator.compare(items[items.length - 1], itemset[0]) < 0
+				|| itemComparator.compare(items[0], itemset[itemset.length - 1]) > 0)
+			return false;
+		// Otherwise we have to check each item individually
+		for (final int item : items) {
+			if (contains(itemset, item))
+				return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Check if an itemset contains an item.
+	 *
+	 * @param itemset
+	 *            the itemset
+	 * @param item
+	 *            the item
+	 * @return true if the item appears in the itemset, false otherwise
+	 */
+	private boolean contains(final int[] itemset, final int item) {
+		// for each item in the itemset
+		for (int i = 0; i < itemset.length; i++) {
+			// if the item is found, return true
+			if (itemset[i] == item) {
+				return true;
+				// if the current item is larger than (wrt descending support
+				// ordering) the item that is searched,
+				// then return false because of the ordering.
+			} else if (itemComparator.compare(itemset[i], item) > 0) {
+				return false;
+			}
+		}
+		// not found, return false
+		return false;
+	}
+
+	/**
 	 * Get the support of the given itemset.
 	 *
 	 * @param set
@@ -835,8 +1075,8 @@ public class ItemsetTree {
 	 * @return the support as an integer.
 	 */
 	public int getSupportOfItemset(final Itemset set) {
-		final int[] sortedItems = set.stream().sorted(itemComparator)
-				.mapToInt(i -> i).toArray(); // sort by descending support
+		// sort by descending support
+		final int[] sortedItems = set.stream().sorted(itemComparator).mapToInt(i -> i).toArray();
 		return count(sortedItems, root, new int[0]); // call count method
 	}
 
@@ -848,8 +1088,8 @@ public class ItemsetTree {
 	 * @return the relative support as a double.
 	 */
 	public double getRelativeSupportOfItemset(final Itemset set) {
-		final int[] sortedItems = set.stream().sorted(itemComparator)
-				.mapToInt(i -> i).toArray(); // sort by descending support
+		// sort by descending support
+		final int[] sortedItems = set.stream().sorted(itemComparator).mapToInt(i -> i).toArray();
 		// call count method
 		return (double) count(sortedItems, root, new int[0]) / noTransactions;
 	}
@@ -864,7 +1104,7 @@ public class ItemsetTree {
 	}
 
 	/**
-	 * This method calculate the support of an itemset by using a subtree
+	 * This method calculates the support of an itemset by using a subtree
 	 * defined by its root.
 	 *
 	 * Note: this is implemented based on the algorithm "count" of Table 2 in
@@ -882,8 +1122,7 @@ public class ItemsetTree {
 	 *            the prefix of the subtree
 	 * @return the support as an integer
 	 */
-	private int count(final int[] s, final ItemsetTreeNode root,
-			final int[] prefix) {
+	private int count(final int[] s, final ItemsetTreeNode root, final int[] prefix) {
 		// the variable count will be used to count the support
 		int count = 0;
 		// for each child of the root
@@ -899,8 +1138,7 @@ public class ItemsetTree {
 				// count.
 				if (includedIn(s, ciprefix)) {
 					count += ci.support;
-				} else if (itemComparator.compare(
-						ciprefix[ciprefix.length - 1], s[s.length - 1]) < 0) {
+				} else if (itemComparator.compare(ciprefix[ciprefix.length - 1], s[s.length - 1]) < 0) {
 					// otherwise, if the last item of ci is smaller than (wrt
 					// descending support ordering) the last item of s,
 					// then make a recursive call to explore
