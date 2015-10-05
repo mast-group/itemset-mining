@@ -12,7 +12,7 @@ from scipy.stats import itemfreq
 top_itemsets = 6
 
 basedir = '/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/'
-logfile = basedir + 'Logs/IIM-uganda_en_3m_filtered-14.01.2015-16:36:50.log'
+logfile = basedir + 'Logs/IIM-uganda-29.09.2015-11:01:19.log'
 db_file = basedir + 'Datasets/Uganda/3mths/uganda_en_filtered.dat'
 dates_file = basedir + 'Datasets/Uganda/3mths/dates_en_filtered.txt'
 item_dict = basedir + 'Datasets/Uganda/items_en.dict'
@@ -89,6 +89,9 @@ for i in range(len(itemsets)):
             if(date_list[k] == row[0]):
                 freqs_with_zeros[k] = row[1]
                 break
+    print legend[i]
+    print date_list
+    print freqs_with_zeros                
     plt.plot(date_list,freqs_with_zeros,linewidth=2)
 
 plt.ylabel('Mentions per day',fontsize=16)
@@ -106,6 +109,7 @@ ax.set_position([box.x0, box.y0,
 
 # Put a legend above current axis
 legend[0] = 'soul, rest, peac'
+legend[4] = 'everi, thing'
 ax.legend(legend,loc='lower center', bbox_to_anchor=(0.485, 1.05),
           fancybox=True, ncol=3, fontsize=16)
 
@@ -113,6 +117,7 @@ ax.legend(legend,loc='lower center', bbox_to_anchor=(0.485, 1.05),
 min_val = mdates.date2num(datetime.strptime('31/12/2012','%d/%m/%Y'))
 max_val = mdates.date2num(datetime.strptime('01/04/2013','%d/%m/%Y'))
 ax.set_xlim( ( min_val, max_val ) ) 
+ax.set_ylim( ( 0, 100 ) )
 
 plt.show()
 

@@ -12,7 +12,7 @@ from scipy.stats import itemfreq
 top_itemsets = 6
 
 basedir = '/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/'
-logfile = basedir + 'FIM/uganda-closed-fim.txt'
+logfile = basedir + 'KRIMP/uganda_itemsets.txt'
 db_file = basedir + 'Datasets/Uganda/3mths/uganda_en_filtered.dat'
 dates_file = basedir + 'Datasets/Uganda/3mths/dates_en_filtered.txt'
 item_dict = basedir + 'Datasets/Uganda/items_en.dict'
@@ -27,7 +27,7 @@ colors = bmap.mpl_colors
 rc('axes', color_cycle=colors)
 
 itemsets = []
-setsupps = []
+setusages = []
 
 # Get top itemsets
 found = False
@@ -36,23 +36,23 @@ f = open(logfile,'r')
 for line in f:
 
     if line.strip():
-        splitLine = line.split('#SUP:')
-        elems = splitLine[0].strip().split(' ')
+        splitLine = line.strip().split(' ')
+        elems = splitLine[1:]
         if(len(elems)==1): # ignore singletons
             continue
-        elems = [elem.strip() for elem in elems]
+        elems = [elem for elem in elems]
         itemsets = itemsets + [elems]
-        supp = splitLine[1].strip()
-        setsupps.append(int(supp))
+        usage = splitLine[0].strip()
+        setusages.append(int(usage))
         
 f.close()
 
 # sort by support
-ind = sorted(range(len(itemsets)), key=lambda k: -setsupps[k])
+ind = sorted(range(len(itemsets)), key=lambda k: -setusages[k])
 isorted = np.array(itemsets)[ind]
-ssorted = np.array(setsupps)[ind]
+ssorted = np.array(setusages)[ind]
 itemsets = itemsets[0:top_itemsets]
-setsupps = setsupps[0:top_itemsets]
+setusages = setusages[0:top_itemsets]
 
 # Get itemset occurence days
 itemset_days = [[] for i in range(top_itemsets)]

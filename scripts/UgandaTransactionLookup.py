@@ -2,8 +2,8 @@
 import linecache as lc
 import pickle
 
-days = ['2013-03-29','2013-01-24','2013-03-26','2013-02-07','2013-02-08','2013-02-09','2013-01-30']
-phrases = [['soul','rest','peac'],['chris','brown'],['bt','nt'],['god','bless'],['god','bless'],['god','bless'],['presid','museveni']]
+days = ['2013-03-29','2013-01-24','2012-12-31','2013-01-15']
+phrases = [['soul','rest','peac'],['chris','brown'],['airtel','red'],['bebe','cool']]
 
 basedir = '/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/'
 db_file = basedir + 'Datasets/Uganda/3mths/uganda_en_filtered.dat'

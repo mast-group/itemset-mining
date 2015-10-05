@@ -12,7 +12,7 @@ from scipy.stats import itemfreq
 top_itemsets = 6
 
 basedir = '/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/'
-logfile = basedir + 'FIM/uganda-closed-fim.txt'
+logfile = basedir + 'MTV/uganda.txt'
 db_file = basedir + 'Datasets/Uganda/3mths/uganda_en_filtered.dat'
 dates_file = basedir + 'Datasets/Uganda/3mths/dates_en_filtered.txt'
 item_dict = basedir + 'Datasets/Uganda/items_en.dict'
@@ -27,7 +27,7 @@ colors = bmap.mpl_colors
 rc('axes', color_cycle=colors)
 
 itemsets = []
-setsupps = []
+setprobs = []
 
 # Get top itemsets
 found = False
@@ -35,24 +35,25 @@ count = 0
 f = open(logfile,'r')
 for line in f:
 
-    if line.strip():
-        splitLine = line.split('#SUP:')
-        elems = splitLine[0].strip().split(' ')
-        if(len(elems)==1): # ignore singletons
-            continue
-        elems = [elem.strip() for elem in elems]
-        itemsets = itemsets + [elems]
-        supp = splitLine[1].strip()
-        setsupps.append(int(supp))
+    if('#' not in line): # skip comments
+        if line.strip():
+            splitLine = line.strip().split(' ')
+            elems = splitLine[1:]
+            if(len(elems)==1): # ignore singletons
+                continue
+            elems = [elem for elem in elems]
+            itemsets = itemsets + [elems]
+            prob = splitLine[0].strip()
+            setprobs.append(float(prob))
         
 f.close()
 
 # sort by support
-ind = sorted(range(len(itemsets)), key=lambda k: -setsupps[k])
+ind = sorted(range(len(itemsets)), key=lambda k: -setprobs[k])
 isorted = np.array(itemsets)[ind]
-ssorted = np.array(setsupps)[ind]
+ssorted = np.array(setprobs)[ind]
 itemsets = itemsets[0:top_itemsets]
-setsupps = setsupps[0:top_itemsets]
+setprobs = setprobs[0:top_itemsets]
 
 # Get itemset occurence days
 itemset_days = [[] for i in range(top_itemsets)]
@@ -108,6 +109,7 @@ ax.set_position([box.x0, box.y0,
                  box.width, box.height * 0.8])
 
 # Put a legend above current axis
+legend[5] = '2, !'
 ax.legend(legend,loc='lower center', bbox_to_anchor=(0.485, 1.05),
           fancybox=True, ncol=3, fontsize=16)
 
@@ -115,7 +117,7 @@ ax.legend(legend,loc='lower center', bbox_to_anchor=(0.485, 1.05),
 min_val = mdates.date2num(datetime.strptime('31/12/2012','%d/%m/%Y'))
 max_val = mdates.date2num(datetime.strptime('01/04/2013','%d/%m/%Y'))
 ax.set_xlim( ( min_val, max_val ) ) 
-ax.set_ylim( ( 0, 80 ) ) 
+ax.set_ylim( ( 0, 600 ) ) 
 
 plt.show()
 
