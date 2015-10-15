@@ -36,7 +36,7 @@ public abstract class ItemsetMiningCore {
 
 	protected static final Logger logger = Logger
 			.getLogger(ItemsetMiningCore.class.getName());
-	public static final File LOG_DIR = new File("/disk/data1/jfowkes/logs/");
+	public static final File LOG_DIR = new File("/tmp/");
 
 	/** Variable settings */
 	protected static Level LOG_LEVEL = Level.FINE;

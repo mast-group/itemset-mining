@@ -38,11 +38,10 @@ public class ItemsetMining extends ItemsetMiningCore {
 	public static class Parameters {
 
 		@Parameter(names = { "-f", "--file" }, description = "Dataset filename")
-		private final File dataset = new File(
-				"/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/Datasets/Uganda/keywords/uganda_en_teenage_pregnancy.dat");
+		private final File dataset = new File("example.dat");
 
 		@Parameter(names = { "-s", "--maxSteps" }, description = "Max structure steps")
-		int maxStructureSteps = 10_000;
+		int maxStructureSteps = 100_000;
 
 		@Parameter(names = { "-i", "--iterations" }, description = "Max iterations")
 		int maxEMIterations = 1_000;
@@ -51,10 +50,13 @@ public class ItemsetMining extends ItemsetMiningCore {
 		Level logLevel = Level.FINE;
 
 		@Parameter(names = { "-r", "--runtime" }, description = "Max Runtime (min)")
-		long maxRunTime = 72 * 60; // 12hrs
+		long maxRunTime = 72 * 60; // 72hrs
 
 		@Parameter(names = { "-t", "--timestamp" }, description = "Timestamp Logfile", arity = 1)
 		boolean timestampLog = true;
+
+		@Parameter(names = { "-v", "--verbose" }, description = "Print to console instead of logfile")
+		private boolean verbose = false;
 	}
 
 	public static void main(final String[] args) throws IOException {
@@ -73,7 +75,9 @@ public class ItemsetMining extends ItemsetMiningCore {
 			// Set loglevel, runtime, timestamp and log file
 			LOG_LEVEL = params.logLevel;
 			MAX_RUNTIME = params.maxRunTime * 60 * 1_000;
-			final File logFile = Logging.getLogFileName("IIM",
+			File logFile = null; 
+			if(!params.verbose)
+			      logFile = Logging.getLogFileName("IIM",
 					params.timestampLog, LOG_DIR, params.dataset);
 
 			// Mine interesting itemsets

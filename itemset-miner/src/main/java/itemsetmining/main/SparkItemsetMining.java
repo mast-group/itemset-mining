@@ -9,6 +9,7 @@ import itemsetmining.transaction.TransactionRDD;
 import itemsetmining.util.Logging;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
+import java.util.Properties;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -36,16 +38,14 @@ import com.google.common.collect.Multiset;
 
 public class SparkItemsetMining extends ItemsetMiningCore {
 
-	private static final boolean USE_KRYO = true;
-	private static final String MASTER = "cup04";
-	private static final short MACHINES_IN_CLUSTER = 8;
-
 	/** Main function parameters */
 	public static class Parameters {
 
 		@Parameter(names = { "-f", "--file" }, description = "Dataset filename")
-		private final File dataset = new File(
-				"/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/Datasets/Succintly/plants.dat");
+		private final File dataset = new File("example.dat");
+    
+		@Parameter(names = { "-j", "--jar" }, description = "IIM Standalone jar")
+		private final String IIMJar = "itemset-mining/target/itemset-mining-1.0.jar";
 
 		@Parameter(names = { "-s", "--maxSteps" }, description = "Max structure steps")
 		int maxStructureSteps = 100_000;
@@ -64,6 +64,9 @@ public class SparkItemsetMining extends ItemsetMiningCore {
 
 		@Parameter(names = { "-t", "--timestamp" }, description = "Timestamp Logfile", arity = 1)
 		boolean timestampLog = true;
+
+		@Parameter(names = { "-v", "--verbose" }, description = "Print to console instead of logfile")
+		private boolean verbose = false;
 	}
 
 	public static void main(final String[] args) throws IOException {
@@ -79,13 +82,15 @@ public class SparkItemsetMining extends ItemsetMiningCore {
 
 			// Set up spark and HDFS
 			final JavaSparkContext sc = setUpSpark(params.dataset.getName(),
-					params.noCores);
+					params.IIMJar, params.noCores);
 			final FileSystem hdfs = setUpHDFS();
 
 			// Set loglevel, runtime, timestamp and log file
 			LOG_LEVEL = params.logLevel;
 			MAX_RUNTIME = params.maxRunTime * 60 * 1_000;
-			final File logFile = Logging.getLogFileName("IIM",
+			File logFile = null; 
+			if(!params.verbose)
+			      logFile = Logging.getLogFileName("IIM",
 					params.timestampLog, LOG_DIR, params.dataset);
 
 			mineItemsets(params.dataset, hdfs, sc, inferenceAlg,
@@ -119,12 +124,16 @@ public class SparkItemsetMining extends ItemsetMiningCore {
 				+ sc.getLocalProperty("spark.cores.max") + " -r " + MAX_RUNTIME
 				/ 60_000 + "\n");
 
+		// Load Spark and HDFS Properties
+		Properties prop = new Properties();
+		prop.load(SparkItemsetMining.class.getResourceAsStream("/spark.properties"));  
+
 		// Copy transaction database to hdfs
-		final String datasetPath = "hdfs://" + MASTER + ".inf.ed.ac.uk:54310/"
+		final String datasetPath = prop.getProperty("HDFSMaster")
 				+ inputFile.getName();
 		hdfs.copyFromLocalFile(new Path(inputFile.getAbsolutePath()), new Path(
 				datasetPath));
-		hdfs.setReplication(new Path(datasetPath), MACHINES_IN_CLUSTER);
+		hdfs.setReplication(new Path(datasetPath), Short.parseShort(prop.getProperty("MachinesInCluster")));
 		try { // Wait for file to replicate
 			Thread.sleep(10 * 1000);
 		} catch (final InterruptedException e) {
@@ -178,40 +187,45 @@ public class SparkItemsetMining extends ItemsetMiningCore {
 	}
 
 	/** Set up Spark */
-	public static JavaSparkContext setUpSpark(final String dataset,
-			final int noCores) {
+	public static JavaSparkContext setUpSpark(final String dataset, final String IIMJar,
+			final int noCores) throws IOException {
+
+		// Load Spark and HDFS Properties
+		Properties prop = new Properties();
+		prop.load(SparkItemsetMining.class.getResourceAsStream("/spark.properties"));    
 
 		final SparkConf conf = new SparkConf();
-		conf.setMaster("spark://" + MASTER + ".inf.ed.ac.uk:7077")
+		conf.setMaster(prop.getProperty("SparkMaster"))
 				.setAppName("Itemset Mining: " + dataset)
-				.setSparkHome("/disk/data1/jfowkes/spark-1.1.0-bin-hadoop1")
-				.setJars(
-						new String[] { "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/git/itemset-mining/target/driver-itemset-mining-1.1-SNAPSHOT.jar" });
+				.setSparkHome(prop.getProperty("SparkHome"))
+				.setJars(new String[] {IIMJar});
 		conf.set("spark.cores.max", Integer.toString(noCores));
 		conf.set("spark.executor.memory", "20g");
 		conf.set("spark.default.parallelism", "8");
 		conf.set("spark.shuffle.manager", "SORT");
 		// conf.set("spark.eventLog.enabled", "true"); uses GB of space!!!
 
-		if (USE_KRYO) {
-			conf.set("spark.serializer",
-					"org.apache.spark.serializer.KryoSerializer");
-			conf.set("spark.kryo.registrator",
-					"itemsetmining.util.ClassRegistrator");
-		}
+		// Use Kryo for serialization - much faster!
+		conf.set("spark.serializer",
+				"org.apache.spark.serializer.KryoSerializer");
+		conf.set("spark.kryo.registrator",
+				"itemsetmining.util.ClassRegistrator");
 
 		final JavaSparkContext sc = new JavaSparkContext(conf);
-		sc.setCheckpointDir("hdfs://" + MASTER
-				+ ".inf.ed.ac.uk:54310/checkpoint/");
+		sc.setCheckpointDir(prop.getProperty("HDFSMaster")
+				+ "checkpoint/");
 		return sc;
 	}
 
 	/** Set up HDFS */
 	public static FileSystem setUpHDFS() throws IOException {
-		// TODO use classloader for conf file?
-		final String hdfsConfFile = "/disk/data1/jfowkes/hadoop-1.0.4/conf/core-site.xml";
+
+		// Load Spark and HDFS Properties
+		Properties prop = new Properties();
+		prop.load(SparkItemsetMining.class.getResourceAsStream("/spark.properties"));   
+
 		final Configuration conf = new Configuration();
-		conf.addResource(new Path(hdfsConfFile));
+		conf.addResource(new Path(prop.getProperty("HDFSConfFile")));
 		return FileSystem.get(conf);
 	}
 
