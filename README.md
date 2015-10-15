@@ -1,7 +1,7 @@
 IIM: Interesting Itemset Miner [![Build Status](https://travis-ci.org/mast-group/itemset-mining.svg?branch=master)](https://travis-ci.org/mast-group/itemset-mining)
 ================
  
-IIM is a novel algorithm that mines the itemsets that are most interesting under a probablistic model of transactions.   
+IIM is a novel algorithm that mines the itemsets that are most interesting under a probablistic model of transactions. Our model is able to efficiently infer interesting itemsets directly from the transaction database.
 
 This is an implementation of the itemset miner from our paper:  
 [*A Bayesian Network Model for Interesting Itemsets*](http://arxiv.org/abs/1510.04130)  
@@ -39,12 +39,12 @@ IIM uses a Bayesian Network Model to determine which itemsets are the most inter
 
 *itemsetmining.main.ItemsetMining* mines itemsets from a specified transaction database file. It has the following command line options:
 
-* **-f**    database file to mine (in FIMI format)
-* **-i**    max. no. iterations
-* **-s**    max. no. structure steps
-* **-r**    max. runtime (min)
-* **-l**    log level (INFO/FINE/FINER/FINEST)
-* **-v**    print to console instead of log file   
+* **-f**  &nbsp;  database file to mine (in FIMI format)
+* **-i**  &nbsp;  max. no. iterations
+* **-s**  &nbsp;  max. no. structure steps
+* **-r**  &nbsp;  max. runtime (min)
+* **-l**  &nbsp;  log level (INFO/FINE/FINER/FINEST)
+* **-v**  &nbsp;  print to console instead of log file   
 
 See the individual file javadocs in *itemsetmining.main.ItemsetMining* for information on the Java interface.
 In Eclipse you can set command line arguments for the IIM interface using the *Run Configurations...* menu option. 
@@ -72,19 +72,18 @@ with an [HDFS](http://hadoop.apache.org/) filesystem (see e.g. relevant parts of
 
 Basic IIM configuration for Spark and HDFS must be set in ```itemset-miner/src/main/resources/spark.properties``` (see the example config provided):
 
-- *SparkHome*     	Spark home directory
-- *SparkMaster*   	URL of spark master server
-- *MachinesInCluster*  	No. machines in the cluster
-
-- *HDFSMaster*		URL of HDFS master server
-- *HDFSConfFile*	Location of Hadoop ```core-site.xml```
+* *SparkHome*   &nbsp;  	Spark home directory
+* *SparkMaster* &nbsp;  	URL of spark master server
+* *MachinesInCluster* &nbsp; 	No. machines in the cluster
+* *HDFSMaster*	&nbsp;	   URL of HDFS master server
+* *HDFSConfFile*	&nbsp;  Location of Hadoop ```core-site.xml```
 
 #### Mining Itemsets using Spark 
 
 *itemsetmining.main.SparkItemsetMining* mines itemsets using a Standalone Spark Sever. It has the following *additional* command line options:
 
-* **-c**    no Spark cores to use
-* **-j**    location of IIM standalone jar (default is ```itemset-mining/target/itemset-mining-1.0.jar```)  
+* **-c**  &nbsp;  no Spark cores to use
+* **-j**  &nbsp;  location of IIM standalone jar (default is ```itemset-mining/target/itemset-mining-1.0.jar```)  
 
 See the individual file javadocs in *itemsetmining.main.SparkItemsetMining* for information on the Java interface.
 
