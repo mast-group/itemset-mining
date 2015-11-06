@@ -85,19 +85,20 @@ need to be manually mapped to (and from) positive integers by means of a diction
 IIM outputs a list of interesting itemsets, one itemset per line, ordered first by their interestingness (given in the 'int' column) followed by their probability (given in the 'prob' column). 
 For example, the first few lines of output for the usage example above are:
 
- ```text
- ============= INTERESTING ITEMSETS =============
-{18}	prob: 0.34830 	int: 1.00000 
-{14}	prob: 0.13740 	int: 1.00000 
-{5}	prob: 0.11740 	int: 1.00000 
-{16}	prob: 0.09110 	int: 1.00000 
-{6, 7, 22, 36, 65, 67}	prob: 0.08440 	int: 1.00000 
-{17, 28, 30, 37}	prob: 0.07830 	int: 1.00000 
-{1, 2, 8, 11, 12, 13, 20, 63, 64}	prob: 0.07670 	int: 1.00000 
-{59, 60, 62}	prob: 0.06980 	int: 1.00000 
-{43, 46, 55}	prob: 0.06890 	int: 1.00000 
-{53}	prob: 0.06870 	int: 1.00000 
- ```
+```text
+============= INTERESTING ITEMSETS =============
+{18}    prob: 0.34830   int: 1.00000 
+{14}    prob: 0.13740   int: 1.00000 
+{5}     prob: 0.11740   int: 1.00000 
+{16}    prob: 0.09110   int: 1.00000 
+{6, 7, 22, 36, 65, 67}  prob: 0.08440   int: 1.00000 
+{17, 28, 30, 37}        prob: 0.07830   int: 1.00000 
+{1, 2, 8, 11, 12, 13, 20, 63, 64}       prob: 0.07670   int: 1.00000 
+{59, 60, 62}    prob: 0.06980   int: 1.00000 
+{43, 46, 55}    prob: 0.06890   int: 1.00000 
+{53}    prob: 0.06870   int: 1.00000 
+```
+
 See the accompanying [paper](http://arxiv.org/abs/1510.04130) for details of how to interpret 'interestingness' and 'probability' under IIM's probabilistic model.
 
 Spark Implementation
