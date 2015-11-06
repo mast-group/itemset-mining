@@ -25,9 +25,7 @@ To compile a standalone runnable jar, simply run
 mvn package
 ```
 
-in the main tassal directory (note that this requires [maven](https://maven.apache.org/)).
-
-This will create the standalone runnable jar ```itemset-mining-1.0.jar``` in the itemset-mining/target subdirectory.
+in the top-level directory (note that this requires [maven](https://maven.apache.org/)). This will create the standalone runnable jar ```itemset-mining-1.0.jar``` in the itemset-mining/target subdirectory. The main class is *itemsetmining.main.ItemsetMining* (see below).
 
 
 Running IIM
@@ -37,7 +35,7 @@ IIM uses a Bayesian Network Model to determine which itemsets are the most inter
 
 #### Mining Interesting Itemsets 
 
-*itemsetmining.main.ItemsetMining* mines itemsets from a specified transaction database file. It has the following command line options:
+Main class *itemsetmining.main.ItemsetMining* mines itemsets from a specified transaction database file. It has the following command line options:
 
 * **-f**  &nbsp;  database file to mine (in FIMI format)
 * **-i**  &nbsp;  max. no. iterations
