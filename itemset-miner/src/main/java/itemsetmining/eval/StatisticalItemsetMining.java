@@ -28,22 +28,23 @@ public class StatisticalItemsetMining {
 		final int[] minAbsSupps = new int[] { 2000, 500, 10, 125 }; // absolute
 		// final int noItemsets = 1000;
 
-		// for (int i = 0; i < datasets.length; i++) {
+		for (int i = 0; i < datasets.length; i++) {
 
-		final String dbPath = "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/Datasets/Succintly/" + datasets[1]
-				+ ".dat";
+			final String dbPath = "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/Datasets/Succintly/" + datasets[i]
+					+ ".dat";
 
-		// final String saveFile =
-		// "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/MTV/" +
-		// datasets[i] + ".txt";
-		// mineItemsets(new File(dbPath), minSupps[i], noItemsets, new
-		// File(saveFile));
+			// final String saveFile =
+			// "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/MTV/" +
+			// datasets[i] + ".txt";
+			// mineItemsets(new File(dbPath), minSupps[i], noItemsets, new
+			// File(saveFile));
 
-		mineKRIMPItemsets(new File(dbPath), minAbsSupps[1]);
-		// mineTilingItemsets(new File(dbPath), minSupps[i]); // min
-		// area
+			mineSLIMItemsets(new File(dbPath), minAbsSupps[i], 24);
+			// mineKRIMPItemsets(new File(dbPath), minAbsSupps[i]);
+			// mineTilingItemsets(new File(dbPath), minSupps[i]); // min
+			// area
 
-		// }
+		}
 
 	}
 
@@ -110,7 +111,14 @@ public class StatisticalItemsetMining {
 		final String dB = krimpDataDir + "data/datasets/" + dbName + ".dat";
 		dbTool.convert(dbFile.getAbsolutePath(), dB);
 
-		// Convert db to krimp format
+		// Set KRIMP data path
+		final Path dconf = Paths.get(krimpDir + "bin/datadir.conf");
+		final List<String> dlines = Files.readAllLines(dconf);
+		dlines.set(3, "dataDir = " + krimpDataDir + "data/");
+		dlines.set(6, "expDir = " + krimpDataDir + "xps/");
+		Files.write(dconf, dlines);
+
+		// Convert DB to KRIMP format
 		final Path cconf = Paths.get(krimpDir + "bin/convertdb.conf");
 		final List<String> clines = Files.readAllLines(cconf);
 		clines.set(12, "dbName = " + dbName);
@@ -145,6 +153,62 @@ public class StatisticalItemsetMining {
 		runScript(cmd, krimpDir + "bin/");
 
 		return readKRIMPItemsets(new File(krimpOutDir + dbName + "_itemsets.txt"));
+	}
+
+	public static LinkedHashMap<Itemset, Double> mineSLIMItemsets(final File dbFile, final int absMinSup,
+			final int maxHours) throws IOException {
+		final String slimDir = "/afs/inf.ed.ac.uk/user/j/jfowkes/Packages/slim/";
+		final String slimDataDir = "/disk/data2/jfowkes/slim/";
+		final String slimOutDir = "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/SLIM/";
+
+		// Remove transaction duplicates and sort items ascending
+		final String dbName = FilenameUtils.getBaseName(dbFile.getName());
+		final String dB = slimDataDir + "data/datasets/" + dbName + ".dat";
+		dbTool.convert(dbFile.getAbsolutePath(), dB);
+
+		// Set SLIM data path
+		final Path dconf = Paths.get(slimDir + "bin/datadir.conf");
+		final List<String> dlines = Files.readAllLines(dconf);
+		dlines.set(3, "dataDir = " + slimDataDir + "data/");
+		dlines.set(6, "expDir = " + slimDataDir + "xps/");
+		Files.write(dconf, dlines);
+
+		// Convert DB to SLIM format
+		final Path cconf = Paths.get(slimDir + "bin/convertdb.conf");
+		final List<String> clines = Files.readAllLines(cconf);
+		clines.set(12, "dbName = " + dbName);
+		Files.write(cconf, clines);
+		String cmd[] = new String[2];
+		cmd[0] = "./slim";
+		cmd[1] = "convertdb";
+		runScript(cmd, slimDir + "bin/");
+
+		// Generate item number mapping
+		final Path aconf = Paths.get(slimDir + "bin/analysedb.conf");
+		final List<String> alines = Files.readAllLines(aconf);
+		alines.set(12, "dbName = " + dbName);
+		Files.write(aconf, alines);
+		cmd[1] = "analysedb";
+		runScript(cmd, slimDir + "bin/");
+
+		// Set SLIM settings and run
+		final Path conf = Paths.get(slimDir + "bin/compress.conf");
+		final List<String> lines = Files.readAllLines(conf);
+		lines.set(21, "iscName = " + dbName + "-all-" + absMinSup + "d");
+		lines.set(42, "numThreads = " + Runtime.getRuntime().availableProcessors());
+		lines.set(60, "maxTime = " + maxHours);
+		Files.write(conf, lines);
+		cmd[1] = "compress";
+		runScript(cmd, slimDir + "bin/");
+
+		// Decode itemsets
+		cmd = new String[3];
+		cmd[0] = "python";
+		cmd[1] = "DecodeItemsets.py";
+		cmd[2] = dbName + "-all-" + absMinSup + "d";
+		runScript(cmd, slimDir + "bin/");
+
+		return readKRIMPItemsets(new File(slimOutDir + dbName + "_itemsets.txt"));
 	}
 
 	/** Read in TileMiner itemsets */
