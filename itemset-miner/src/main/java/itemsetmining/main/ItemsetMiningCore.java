@@ -1,11 +1,5 @@
 package itemsetmining.main;
 
-import itemsetmining.itemset.Itemset;
-import itemsetmining.itemset.ItemsetTree;
-import itemsetmining.main.InferenceAlgorithms.InferenceAlgorithm;
-import itemsetmining.transaction.TransactionDatabase;
-import itemsetmining.transaction.TransactionRDD;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,12 +14,17 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.FileUtils;
 
-import scala.Tuple2;
-
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Ordering;
+
+import itemsetmining.itemset.Itemset;
+import itemsetmining.itemset.ItemsetTree;
+import itemsetmining.main.InferenceAlgorithms.InferenceAlgorithm;
+import itemsetmining.transaction.TransactionDatabase;
+import itemsetmining.transaction.TransactionRDD;
+import scala.Tuple2;
 
 public abstract class ItemsetMiningCore {
 
@@ -34,8 +33,7 @@ public abstract class ItemsetMiningCore {
 	private static final int COMBINE_ITEMSETS_EVERY = 1;
 	private static final double OPTIMIZE_TOL = 1e-5;
 
-	protected static final Logger logger = Logger
-			.getLogger(ItemsetMiningCore.class.getName());
+	protected static final Logger logger = Logger.getLogger(ItemsetMiningCore.class.getName());
 	public static final File LOG_DIR = new File("/tmp/");
 
 	/** Variable settings */
@@ -45,10 +43,8 @@ public abstract class ItemsetMiningCore {
 	/**
 	 * Learn itemsets model using structural EM
 	 */
-	protected static HashMap<Itemset, Double> structuralEM(
-			final TransactionDatabase transactions,
-			final Multiset<Integer> singletons, final ItemsetTree tree,
-			final InferenceAlgorithm inferenceAlgorithm,
+	protected static HashMap<Itemset, Double> structuralEM(final TransactionDatabase transactions,
+			final Multiset<Integer> singletons, final ItemsetTree tree, final InferenceAlgorithm inferenceAlgorithm,
 			final int maxStructureSteps, final int maxEMIterations) {
 
 		// Start timer
@@ -89,8 +85,7 @@ public abstract class ItemsetMiningCore {
 		final Ordering<Itemset> candidateSupportOrdering = new Ordering<Itemset>() {
 			@Override
 			public int compare(final Itemset set1, final Itemset set2) {
-				return candidateSupports.get(set2)
-						- candidateSupports.get(set1);
+				return candidateSupports.get(set2) - candidateSupports.get(set1);
 			}
 		}.compound(Ordering.usingToString());
 
@@ -103,32 +98,23 @@ public abstract class ItemsetMiningCore {
 
 			// Learn structure
 			if (iteration % COMBINE_ITEMSETS_EVERY == 0) {
-				logger.finer("\n----- Itemset Combination at Step " + iteration
-						+ "\n");
-				combineItemsetsStep(itemsets, transactions, tree,
-						rejected_sets, inferenceAlgorithm, maxStructureSteps,
-						supportOrdering, supports, candidateSupportOrdering,
-						candidateSupports);
+				logger.finer("\n----- Itemset Combination at Step " + iteration + "\n");
+				combineItemsetsStep(itemsets, transactions, tree, rejected_sets, inferenceAlgorithm, maxStructureSteps,
+						supportOrdering, supports, candidateSupportOrdering, candidateSupports);
 				if (transactions.getIterationLimitExceeded())
 					breakLoop = true;
 			} else {
-				logger.finer("\n+++++ Tree Structural Optimization at Step "
-						+ iteration + "\n");
-				learnStructureStep(itemsets, transactions, tree, rejected_sets,
-						inferenceAlgorithm, maxStructureSteps);
+				logger.finer("\n+++++ Tree Structural Optimization at Step " + iteration + "\n");
+				learnStructureStep(itemsets, transactions, tree, rejected_sets, inferenceAlgorithm, maxStructureSteps);
 				if (transactions.getIterationLimitExceeded())
 					breakLoop = true;
 			}
-			logger.finer(String.format(" Average cost: %.2f%n",
-					transactions.getAverageCost()));
+			logger.finer(String.format(" Average cost: %.2f%n", transactions.getAverageCost()));
 
 			// Optimize parameters of new structure
-			if (iteration % OPTIMIZE_PARAMS_EVERY == 0
-					|| iteration == maxEMIterations || breakLoop == true) {
-				logger.fine("\n***** Parameter Optimization at Step "
-						+ iteration + "\n");
-				expectationMaximizationStep(itemsets, transactions,
-						inferenceAlgorithm);
+			if (iteration % OPTIMIZE_PARAMS_EVERY == 0 || iteration == maxEMIterations || breakLoop == true) {
+				logger.fine("\n***** Parameter Optimization at Step " + iteration + "\n");
+				expectationMaximizationStep(itemsets, transactions, inferenceAlgorithm);
 			}
 
 			// Break loop if requested
@@ -137,8 +123,7 @@ public abstract class ItemsetMiningCore {
 
 			// Check if time exceeded
 			if (System.currentTimeMillis() - startTime > MAX_RUNTIME) {
-				logger.warning("\nRuntime limit of " + MAX_RUNTIME
-						/ (60. * 1000.) + " minutes exceeded.\n");
+				logger.warning("\nRuntime limit of " + MAX_RUNTIME / (60. * 1000.) + " minutes exceeded.\n");
 				break;
 			}
 
@@ -153,9 +138,7 @@ public abstract class ItemsetMiningCore {
 			if (iteration == maxEMIterations)
 				logger.warning("\nEM iteration limit exceeded.\n");
 		}
-		logger.info("\nElapsed time: "
-				+ (System.currentTimeMillis() - startTime) / (60. * 1000.)
-				+ " minutes.\n");
+		logger.info("\nElapsed time: " + (System.currentTimeMillis() - startTime) / (60. * 1000.) + " minutes.\n");
 
 		return itemsets;
 	}
@@ -167,10 +150,8 @@ public abstract class ItemsetMiningCore {
 	 *         <p>
 	 *         NB. zero probability itemsets are dropped
 	 */
-	private static void expectationMaximizationStep(
-			final HashMap<Itemset, Double> itemsets,
-			final TransactionDatabase transactions,
-			final InferenceAlgorithm inferenceAlgorithm) {
+	private static void expectationMaximizationStep(final HashMap<Itemset, Double> itemsets,
+			final TransactionDatabase transactions, final InferenceAlgorithm inferenceAlgorithm) {
 
 		logger.fine(" Structure Optimal Itemsets: " + itemsets + "\n");
 
@@ -184,18 +165,15 @@ public abstract class ItemsetMiningCore {
 
 			// Parallel E-step and M-step combined
 			if (transactions instanceof TransactionRDD)
-				newItemsets = SparkEMStep.hardEMStep(transactions,
-						inferenceAlgorithm);
+				newItemsets = SparkEMStep.hardEMStep(transactions, inferenceAlgorithm);
 			else
-				newItemsets = EMStep.hardEMStep(
-						transactions.getTransactionList(), inferenceAlgorithm);
+				newItemsets = EMStep.hardEMStep(transactions.getTransactionList(), inferenceAlgorithm);
 
 			// If set has stabilised calculate norm(p_prev - p_new)
 			if (prevItemsets.keySet().equals(newItemsets.keySet())) {
 				norm = 0;
 				for (final Itemset set : prevItemsets.keySet()) {
-					norm += Math.pow(
-							prevItemsets.get(set) - newItemsets.get(set), 2);
+					norm += Math.pow(prevItemsets.get(set) - newItemsets.get(set), 2);
 				}
 				norm = Math.sqrt(norm);
 			}
@@ -212,16 +190,13 @@ public abstract class ItemsetMiningCore {
 		itemsets.clear();
 		itemsets.putAll(prevItemsets);
 		logger.fine(" Parameter Optimal Itemsets: " + itemsets + "\n");
-		logger.fine(String.format(" Average cost: %.2f%n",
-				transactions.getAverageCost()));
+		logger.fine(String.format(" Average cost: %.2f%n", transactions.getAverageCost()));
 	}
 
 	/** Generate candidate itemsets from Itemset tree */
 	@Deprecated
-	private static void learnStructureStep(
-			final HashMap<Itemset, Double> itemsets,
-			final TransactionDatabase transactions, final ItemsetTree tree,
-			final Set<Itemset> rejected_sets,
+	private static void learnStructureStep(final HashMap<Itemset, Double> itemsets,
+			final TransactionDatabase transactions, final ItemsetTree tree, final Set<Itemset> rejected_sets,
 			final InferenceAlgorithm inferenceAlgorithm, final int maxSteps) {
 
 		// Try and find better itemset to add
@@ -241,8 +216,7 @@ public abstract class ItemsetMiningCore {
 					rejected_sets.add(candidate);
 					continue;
 				}
-				final boolean accepted = evaluateCandidate(itemsets,
-						transactions, inferenceAlgorithm, candidate);
+				final boolean accepted = evaluateCandidate(itemsets, transactions, inferenceAlgorithm, candidate);
 				if (accepted == true) // Better itemset found
 					return;
 				rejected_sets.add(candidate); // otherwise add to rejected
@@ -269,23 +243,17 @@ public abstract class ItemsetMiningCore {
 	 * @param candidateSupports
 	 *            cached candididate supports for the above ordering
 	 */
-	private static void combineItemsetsStep(
-			final HashMap<Itemset, Double> itemsets,
-			final TransactionDatabase transactions, final ItemsetTree tree,
-			final Set<Itemset> rejected_sets,
+	private static void combineItemsetsStep(final HashMap<Itemset, Double> itemsets,
+			final TransactionDatabase transactions, final ItemsetTree tree, final Set<Itemset> rejected_sets,
 			final InferenceAlgorithm inferenceAlgorithm, final int maxSteps,
-			final Ordering<Itemset> itemsetSupportOrdering,
-			final HashMap<Itemset, Integer> supports,
-			final Ordering<Itemset> candidateSupportOrdering,
-			final HashMap<Itemset, Integer> candidateSupports) {
+			final Ordering<Itemset> itemsetSupportOrdering, final HashMap<Itemset, Integer> supports,
+			final Ordering<Itemset> candidateSupportOrdering, final HashMap<Itemset, Integer> candidateSupports) {
 
 		// Set up support-ordered priority queue
-		final PriorityQueue<Itemset> candidateQueue = new PriorityQueue<Itemset>(
-				maxSteps, candidateSupportOrdering);
+		final PriorityQueue<Itemset> candidateQueue = new PriorityQueue<Itemset>(maxSteps, candidateSupportOrdering);
 
 		// Sort itemsets according to given ordering
-		final ArrayList<Itemset> sortedItemsets = new ArrayList<>(
-				itemsets.keySet());
+		final ArrayList<Itemset> sortedItemsets = new ArrayList<>(itemsets.keySet());
 		Collections.sort(sortedItemsets, itemsetSupportOrdering);
 
 		// Find maxSteps supersets for all itemsets
@@ -305,8 +273,7 @@ public abstract class ItemsetMiningCore {
 						// Add candidate to queue
 						if (!rejected_sets.contains(candidate)) {
 							if (!candidateSupports.containsKey(candidate))
-								candidateSupports.put(candidate,
-										tree.getSupportOfItemset(candidate));
+								candidateSupports.put(candidate, tree.getSupportOfItemset(candidate));
 							candidateQueue.add(candidate);
 							iteration++;
 						}
@@ -318,8 +285,7 @@ public abstract class ItemsetMiningCore {
 				}
 			}
 		}
-		logger.info(" Finished bulding priority queue. Size: "
-				+ candidateQueue.size() + "\n");
+		logger.info(" Finished bulding priority queue. Size: " + candidateQueue.size() + "\n");
 		// logger.info(" Time taken: " + (System.nanoTime() - startTime) / 1e6);
 		// logger.finest(" Structural candidate itemsets: ");
 
@@ -331,8 +297,7 @@ public abstract class ItemsetMiningCore {
 			// / (double) transactions.size());
 			counter++;
 			rejected_sets.add(topCandidate); // candidate seen
-			final boolean accepted = evaluateCandidate(itemsets, transactions,
-					inferenceAlgorithm, topCandidate);
+			final boolean accepted = evaluateCandidate(itemsets, transactions, inferenceAlgorithm, topCandidate);
 			if (accepted == true) { // Better itemset found
 				// update supports
 				supports.put(topCandidate, candidateSupports.get(topCandidate));
@@ -362,20 +327,16 @@ public abstract class ItemsetMiningCore {
 	 */
 	@SuppressWarnings("unused")
 	@Deprecated
-	private static void oldCombineItemsetsStep(
-			final HashMap<Itemset, Double> itemsets,
-			final TransactionDatabase transactions, final ItemsetTree tree,
-			final Set<Itemset> rejected_sets,
-			final InferenceAlgorithm inferenceAlgorithm, final int maxSteps,
-			final Ordering<Itemset> itemsetOrdering,
+	private static void oldCombineItemsetsStep(final HashMap<Itemset, Double> itemsets,
+			final TransactionDatabase transactions, final ItemsetTree tree, final Set<Itemset> rejected_sets,
+			final InferenceAlgorithm inferenceAlgorithm, final int maxSteps, final Ordering<Itemset> itemsetOrdering,
 			final HashMap<Itemset, Integer> supports) {
 
 		// Try and find better itemset to add
 		// logger.finest(" Structural candidate itemsets: ");
 
 		// Sort itemsets according to given ordering
-		final ArrayList<Itemset> sortedItemsets = new ArrayList<>(
-				itemsets.keySet());
+		final ArrayList<Itemset> sortedItemsets = new ArrayList<>(itemsets.keySet());
 		Collections.sort(sortedItemsets, itemsetOrdering);
 
 		// Suggest supersets for all itemsets
@@ -395,16 +356,15 @@ public abstract class ItemsetMiningCore {
 						// Evaluate candidate itemset
 						if (!rejected_sets.contains(candidate)) {
 							rejected_sets.add(candidate); // candidate seen
-							final boolean accepted = evaluateCandidate(
-									itemsets, transactions, inferenceAlgorithm,
+							final boolean accepted = evaluateCandidate(itemsets, transactions, inferenceAlgorithm,
 									candidate);
 							if (accepted == true) { // Better itemset found
 								// update supports
-								supports.put(candidate,
-										tree.getSupportOfItemset(candidate));
+								supports.put(candidate, tree.getSupportOfItemset(candidate));
 								return;
 							}
-							// logger.finest("\n Structural candidate itemsets: ");
+							// logger.finest("\n Structural candidate itemsets:
+							// ");
 						}
 
 						iteration++;
@@ -424,21 +384,18 @@ public abstract class ItemsetMiningCore {
 	}
 
 	/** Evaluate a candidate itemset to see if it should be included */
-	private static boolean evaluateCandidate(
-			final HashMap<Itemset, Double> itemsets,
-			final TransactionDatabase transactions,
-			final InferenceAlgorithm inferenceAlgorithm, final Itemset candidate) {
+	private static boolean evaluateCandidate(final HashMap<Itemset, Double> itemsets,
+			final TransactionDatabase transactions, final InferenceAlgorithm inferenceAlgorithm,
+			final Itemset candidate) {
 
 		logger.finer("\n Candidate: " + candidate);
 
 		// Find cost in parallel
 		Tuple2<Double, Double> costAndProb;
 		if (transactions instanceof TransactionRDD) {
-			costAndProb = SparkEMStep.structuralEMStep(transactions,
-					inferenceAlgorithm, candidate);
+			costAndProb = SparkEMStep.structuralEMStep(transactions, inferenceAlgorithm, candidate);
 		} else {
-			costAndProb = EMStep.structuralEMStep(transactions,
-					inferenceAlgorithm, candidate);
+			costAndProb = EMStep.structuralEMStep(transactions, inferenceAlgorithm, candidate);
 		}
 		final double curCost = costAndProb._1;
 		final double prob = costAndProb._2;
@@ -450,11 +407,9 @@ public abstract class ItemsetMiningCore {
 			// Update cache with candidate
 			Map<Itemset, Double> newItemsets;
 			if (transactions instanceof TransactionRDD) {
-				newItemsets = SparkEMStep.addAcceptedCandidateCache(
-						transactions, candidate, prob);
+				newItemsets = SparkEMStep.addAcceptedCandidateCache(transactions, candidate, prob);
 			} else {
-				newItemsets = EMStep.addAcceptedCandidateCache(transactions,
-						candidate, prob);
+				newItemsets = EMStep.addAcceptedCandidateCache(transactions, candidate, prob);
 			}
 			// Update itemsets with newly inferred itemsets
 			itemsets.clear();
@@ -468,20 +423,13 @@ public abstract class ItemsetMiningCore {
 	}
 
 	/** Sort itemsets by interestingness */
-	public static Map<Itemset, Double> sortItemsets(
-			final HashMap<Itemset, Double> itemsets,
+	public static Map<Itemset, Double> sortItemsets(final HashMap<Itemset, Double> itemsets,
 			final HashMap<Itemset, Double> intMap) {
 
-		final Ordering<Itemset> comparator = Ordering
-				.natural()
-				.reverse()
-				.onResultOf(Functions.forMap(intMap))
-				.compound(
-						Ordering.natural().reverse()
-								.onResultOf(Functions.forMap(itemsets)))
+		final Ordering<Itemset> comparator = Ordering.natural().reverse().onResultOf(Functions.forMap(intMap))
+				.compound(Ordering.natural().reverse().onResultOf(Functions.forMap(itemsets)))
 				.compound(Ordering.usingToString());
-		final Map<Itemset, Double> sortedItemsets = ImmutableSortedMap.copyOf(
-				itemsets, comparator);
+		final Map<Itemset, Double> sortedItemsets = ImmutableSortedMap.copyOf(itemsets, comparator);
 
 		return sortedItemsets;
 	}
@@ -490,8 +438,7 @@ public abstract class ItemsetMiningCore {
 	 * Calculate interestingness as defined by i(S) = |z_S = 1|/|T : S in T|
 	 * where |z_S = 1| is calculated by pi_S*|T| and |T : S in T| = supp(S)
 	 */
-	public static HashMap<Itemset, Double> calculateInterestingness(
-			final HashMap<Itemset, Double> itemsets,
+	public static HashMap<Itemset, Double> calculateInterestingness(final HashMap<Itemset, Double> itemsets,
 			final TransactionDatabase transactions, final ItemsetTree tree) {
 
 		final HashMap<Itemset, Double> interestingnessMap = new HashMap<>();
@@ -499,17 +446,15 @@ public abstract class ItemsetMiningCore {
 		// Calculate interestingness
 		final long noTransactions = transactions.size();
 		for (final Itemset set : itemsets.keySet()) {
-			final double interestingness = itemsets.get(set) * noTransactions
-					/ (double) tree.getSupportOfItemset(set);
-			interestingnessMap.put(set, interestingness);
+			final double interestingness = itemsets.get(set) * noTransactions / (double) tree.getSupportOfItemset(set);
+			interestingnessMap.put(set, Math.round(interestingness * 1E10) / 1E10);
 		}
 
 		return interestingnessMap;
 	}
 
 	/** Read output itemsets from file (sorted by interestingness) */
-	public static Map<Itemset, Double> readIIMItemsets(final File output)
-			throws IOException {
+	public static Map<Itemset, Double> readIIMItemsets(final File output) throws IOException {
 		final HashMap<Itemset, Double> itemsets = new HashMap<>();
 		final HashMap<Itemset, Double> intMap = new HashMap<>();
 
@@ -522,15 +467,12 @@ public abstract class ItemsetMiningCore {
 				final String[] splitLine = line.split("\t");
 				final String[] items = splitLine[0].split(",");
 				items[0] = items[0].replace("{", "");
-				items[items.length - 1] = items[items.length - 1].replace("}",
-						"");
+				items[items.length - 1] = items[items.length - 1].replace("}", "");
 				final Itemset itemset = new Itemset();
 				for (final String item : items)
 					itemset.add(Integer.parseInt(item.trim()));
-				final double prob = Double
-						.parseDouble(splitLine[1].split(":")[1]);
-				final double intr = Double
-						.parseDouble(splitLine[2].split(":")[1]);
+				final double prob = Double.parseDouble(splitLine[1].split(":")[1]);
+				final double intr = Double.parseDouble(splitLine[2].split(":")[1]);
 				itemsets.put(itemset, prob);
 				intMap.put(itemset, intr);
 			}
@@ -540,8 +482,7 @@ public abstract class ItemsetMiningCore {
 		}
 
 		// Sort itemsets by interestingness
-		final Map<Itemset, Double> sortedItemsets = sortItemsets(itemsets,
-				intMap);
+		final Map<Itemset, Double> sortedItemsets = sortItemsets(itemsets, intMap);
 
 		return sortedItemsets;
 	}
