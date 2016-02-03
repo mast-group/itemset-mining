@@ -71,8 +71,8 @@ public class ItemsetPrecisionRecall {
 
 		precisionRecall(itemsets, specialItemsets, "MTV");
 		precisionRecall(itemsets, specialItemsets, "KRIMP");
-		precisionRecall(itemsets, specialItemsets, "FIM");
-		//precisionRecall(itemsets, specialItemsets, "IIM");
+		precisionRecall(itemsets, specialItemsets, "CHARM");
+		// precisionRecall(itemsets, specialItemsets, "IIM");
 		// precisionRecall(itemsets, specialItemsets, "Tiling"); // segfaults
 
 	}
@@ -96,7 +96,7 @@ public class ItemsetPrecisionRecall {
 			minedItemsets = runSpark(sparkCores, noIterations);
 		else if (algorithm.equals("MTV"))
 			minedItemsets = StatisticalItemsetMining.mineMTVItemsets(dbFile, minSup, noMTVIterations, logFile);
-		else if (algorithm.equals("FIM")) {
+		else if (algorithm.equals("CHARM")) {
 			CondensedFrequentItemsetMining.mineClosedFrequentItemsetsCharm(dbFile.getAbsolutePath(),
 					logFile.getAbsolutePath(), minSup);
 			minedItemsets = FrequentItemsetMining.readFrequentItemsetsChiSquared(logFile, dbFile.getAbsolutePath());
