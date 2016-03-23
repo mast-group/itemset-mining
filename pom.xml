@@ -56,50 +56,6 @@
       </repository>
   </repositories>
   
-  <dependencies>
-     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>18.0</version>
-     </dependency>
-     <dependency>
-        <groupId>commons-io</groupId>
-        <artifactId>commons-io</artifactId>
-        <version>2.4</version>
-     </dependency>
-     <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-math3</artifactId>
-        <version>3.3</version>
-     </dependency>
-     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-	  <groupId>codemining.deps</groupId>
-	  <artifactId>spmf</artifactId>
-	  <version>0.96r13</version>
-    </dependency>
-    <dependency> <!-- Nice option parser -->
-	  <groupId>com.beust</groupId>
-	  <artifactId>jcommander</artifactId>
-	  <version>1.35</version>
-	</dependency> 
-    <dependency> <!-- Spark dependency -->
-      <groupId>org.apache.spark</groupId>
-      <artifactId>spark-core_2.10</artifactId>
-      <version>1.1.0</version>
-    </dependency>
-    <dependency> <!-- HDFS dependency -->
-	  <groupId>org.apache.hadoop</groupId>
-	  <artifactId>hadoop-client</artifactId>
-	  <version>1.0.4</version>
-	</dependency>
-  </dependencies>
-  
   <reporting>
      <plugins>
         <plugin>
