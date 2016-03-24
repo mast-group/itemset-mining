@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 from matplotlib import rc
 import numpy as np
+import os
 
 rc('xtick', labelsize=16) 
 rc('ytick', labelsize=16) 
@@ -12,12 +13,12 @@ def main():
     #probname = 'caviar'
     probname = 'Background'
     
-    cols = ['b','g','m','r']
-    prefixes = ['IIM','MTV','KRIMP','CHARM']
+    cols = ['b','g','c','m','r']
+    prefixes = ['IIM','MTV','SLIM','KRIMP','CHARM']
     
     for prefix in prefixes:
     
-        precision, recall = readdata(open('/disk/data1/jfowkes/logs/IIM-'+probname+'/'+prefix+'_'+probname+'_pr.txt'))
+        precision, recall = readdata(open('/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/PrecisionRecall/'+probname+'/'+prefix+'_'+probname+'_pr.txt'))
 	col = cols[prefixes.index(prefix)]
         
         # Calculate interpolated precision

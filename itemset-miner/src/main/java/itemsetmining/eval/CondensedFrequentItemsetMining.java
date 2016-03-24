@@ -4,6 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.SortedMap;
+
+import com.google.common.base.Functions;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Ordering;
 
 import ca.pfv.spmf.algorithms.frequentpatterns.charm.AlgoCharmMFI;
 import ca.pfv.spmf.algorithms.frequentpatterns.charm.AlgoCharm_Bitset;
@@ -19,8 +24,8 @@ public class CondensedFrequentItemsetMining {
 	public static void main(final String[] args) throws IOException {
 
 		// MTV Parameters
-		final String[] datasets = new String[] { "plants", "mammals", "abstracts", "uganda"};
-		final double[] minSupps = new double[] { 0.05750265949, 0.1872659176, 0.01164144353, 0.001}; 
+		final String[] datasets = new String[] { "plants", "mammals", "abstracts", "uganda" };
+		final double[] minSupps = new double[] { 0.05750265949, 0.1872659176, 0.01164144353, 0.001 };
 
 		for (int i = 0; i < datasets.length; i++) {
 
@@ -34,8 +39,8 @@ public class CondensedFrequentItemsetMining {
 	}
 
 	/** Run Charm closed FIM algorithm */
-	public static HashMap<Itemset, Integer> mineClosedFrequentItemsetsCharm(final String dataset, final String saveFile,
-			final double minSupp) throws IOException {
+	public static SortedMap<Itemset, Integer> mineClosedFrequentItemsetsCharm(final String dataset,
+			final String saveFile, final double minSupp) throws IOException {
 
 		// Remove transaction duplicates and sort items ascending
 		final File TMPDB = File.createTempFile("fixed-dataset", ".dat");
@@ -53,7 +58,7 @@ public class CondensedFrequentItemsetMining {
 	}
 
 	/** Run Charm maximal closed FIM algorithm */
-	public static HashMap<Itemset, Integer> mineMaximalFrequentItemsetsCharm(final String dataset,
+	public static SortedMap<Itemset, Integer> mineMaximalFrequentItemsetsCharm(final String dataset,
 			final String saveFile, final double minSupp) throws IOException {
 
 		// Remove transaction duplicates and sort items ascending
@@ -74,8 +79,8 @@ public class CondensedFrequentItemsetMining {
 		return toMap(patterns);
 	}
 
-	/** Convert frequent itemsets to HashMap<Itemset, Integer> */
-	public static HashMap<Itemset, Integer> toMap(final Itemsets patterns) {
+	/** Convert frequent itemsets to sorted Map<Itemset, Integer> */
+	public static SortedMap<Itemset, Integer> toMap(final Itemsets patterns) {
 		if (patterns == null) {
 			return null;
 		} else {
@@ -85,7 +90,10 @@ public class CondensedFrequentItemsetMining {
 				for (final ca.pfv.spmf.patterns.itemset_array_integers_with_tids_bitset.Itemset itemset : level)
 					itemsets.put(new Itemset(itemset.getItems()), itemset.getAbsoluteSupport());
 			}
-			return itemsets;
+			// Sort itemsets by support
+			final Ordering<Itemset> comparator = Ordering.natural().reverse().onResultOf(Functions.forMap(itemsets))
+					.compound(Ordering.usingToString());
+			return ImmutableSortedMap.copyOf(itemsets, comparator);
 		}
 	}
 

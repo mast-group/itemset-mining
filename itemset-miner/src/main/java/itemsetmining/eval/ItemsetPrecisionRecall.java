@@ -71,8 +71,9 @@ public class ItemsetPrecisionRecall {
 
 		precisionRecall(itemsets, specialItemsets, "MTV");
 		precisionRecall(itemsets, specialItemsets, "KRIMP");
+		precisionRecall(itemsets, specialItemsets, "SLIM");
 		precisionRecall(itemsets, specialItemsets, "CHARM");
-		// precisionRecall(itemsets, specialItemsets, "IIM");
+		precisionRecall(itemsets, specialItemsets, "IIM");
 		// precisionRecall(itemsets, specialItemsets, "Tiling"); // segfaults
 
 	}
@@ -106,6 +107,9 @@ public class ItemsetPrecisionRecall {
 		else if (algorithm.equals("KRIMP"))
 			minedItemsets = StatisticalItemsetMining.mineKRIMPItemsets(dbFile,
 					(int) Math.floor(minSup * noTransactions));
+		else if (algorithm.equals("SLIM"))
+			minedItemsets = StatisticalItemsetMining.mineSLIMItemsets(dbFile, (int) Math.floor(minSup * noTransactions),
+					24);
 		else if (algorithm.equals("Tiling"))
 			minedItemsets = StatisticalItemsetMining.mineTilingItemsets(dbFile, minSup);
 		else

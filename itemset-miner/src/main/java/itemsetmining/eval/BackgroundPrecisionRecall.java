@@ -61,9 +61,10 @@ public class BackgroundPrecisionRecall {
 
 		// precisionRecall(itemsets, "Tiling"); // segfaults
 		precisionRecall(itemsets, "KRIMP");
-		// precisionRecall(itemsets, "CHARM");
-		// precisionRecall(itemsets, "IIM");
-		// precisionRecall(itemsets, "MTV");
+		precisionRecall(itemsets, "SLIM");
+		precisionRecall(itemsets, "CHARM");
+		precisionRecall(itemsets, "IIM");
+		precisionRecall(itemsets, "MTV");
 
 	}
 
@@ -91,10 +92,13 @@ public class BackgroundPrecisionRecall {
 		} else if (algorithm.equals("IIM"))
 			minedItemsets = ItemsetMining.mineItemsets(dbFile, new InferGreedy(), maxStructureSteps, noIterations,
 					logFile);
-		else if (algorithm.equals("KRIMP")) {
+		else if (algorithm.equals("KRIMP"))
 			minedItemsets = StatisticalItemsetMining.mineKRIMPItemsets(dbFile,
 					(int) Math.floor(minSup * noTransactions));
-		} else if (algorithm.equals("Tiling"))
+		else if (algorithm.equals("SLIM"))
+			minedItemsets = StatisticalItemsetMining.mineSLIMItemsets(dbFile, (int) Math.floor(minSup * noTransactions),
+					24);
+		else if (algorithm.equals("Tiling"))
 			minedItemsets = StatisticalItemsetMining.mineTilingItemsets(dbFile, minSup);
 		else
 			throw new RuntimeException("Incorrect algorithm name.");

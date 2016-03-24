@@ -9,9 +9,14 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.SortedMap;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+
+import com.google.common.base.Functions;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Ordering;
 
 import ca.pfv.spmf.tools.other_dataset_tools.FixTransactionDatabaseTool;
 import itemsetmining.itemset.Itemset;
@@ -48,7 +53,7 @@ public class StatisticalItemsetMining {
 
 	}
 
-	public static LinkedHashMap<Itemset, Double> mineMTVItemsets(final File dbFile, final double minSup,
+	public static SortedMap<Itemset, Double> mineMTVItemsets(final File dbFile, final double minSup,
 			final int noItemsets, final File saveFile) throws IOException {
 
 		// Remove transaction duplicates and sort items ascending
@@ -253,7 +258,7 @@ public class StatisticalItemsetMining {
 	}
 
 	/** Read in MTV itemsets */
-	public static LinkedHashMap<Itemset, Double> readMTVItemsets(final File output) throws IOException {
+	public static SortedMap<Itemset, Double> readMTVItemsets(final File output) throws IOException {
 		final LinkedHashMap<Itemset, Double> itemsets = new LinkedHashMap<>();
 
 		final String[] lines = FileUtils.readFileToString(output).split("\n");
@@ -268,8 +273,10 @@ public class StatisticalItemsetMining {
 				itemsets.put(itemset, prob);
 			}
 		}
-
-		return itemsets;
+		// Sort itemsets by support
+		final Ordering<Itemset> comparator = Ordering.natural().reverse().onResultOf(Functions.forMap(itemsets))
+				.compound(Ordering.usingToString());
+		return ImmutableSortedMap.copyOf(itemsets, comparator);
 	}
 
 	/** Run shell script with command line arguments */
