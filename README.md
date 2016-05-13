@@ -149,4 +149,4 @@ Please report any bugs using GitHub's issue tracker.
 License
 -------
 
-This algorithm is released under the new BSD license.
+This algorithm is released under the GNU GPLv3 license.
