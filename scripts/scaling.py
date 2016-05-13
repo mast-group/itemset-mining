@@ -12,7 +12,7 @@ s64_time = [10.125, 37.37, 307.769, 2829.759, 31902.483]
 
 plt.figure(1)
 plt.hold(True)
-plt.plot(trans,s64_time,'.-',linewidth=2,markersize=12,clip_on=False)
+plt.plot(trans,s64_time,'.-',linewidth=2,markersize=14,clip_on=False)
 plt.plot(trans,linear_trans,'k--',linewidth=2)
 plt.gca().set_xscale('log')
 plt.gca().set_yscale('log')

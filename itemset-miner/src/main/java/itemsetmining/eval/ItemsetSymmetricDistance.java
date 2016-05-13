@@ -26,15 +26,15 @@ import itemsetmining.main.ItemsetMiningCore;
 
 public class ItemsetSymmetricDistance {
 
-	private static int topN = 100;
+	private static int topN = 50;
 	private static final String baseDir = "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/";
 
 	public static void main(final String[] args) throws IOException {
 
 		final String[] IIMlogs = new String[] { "IIM-plants-23.09.2015-06:45:55.log",
 				"IIM-mammals-23.09.2015-07:57:39.log", "IIM-abstracts-18.09.2015-15:14:13.log",
-				"IIM-uganda-29.09.2015-11:01:19.log" };
-		final String[] datasets = new String[] { "plants", "mammals", "abstracts", "uganda" };
+				"IIM-uganda-29.09.2015-11:01:19.log", "IIM-retail-25.03.2016-10:43:16.log" };
+		final String[] datasets = new String[] { "plants", "mammals", "abstracts", "uganda", "retail" };
 
 		for (int i = 0; i < datasets.length; i++) {
 
@@ -93,6 +93,7 @@ public class ItemsetSymmetricDistance {
 		System.out.println("No items: " + ItemsetScaling.countNoItems(freqItemsets.keySet()));
 
 		// Get top 100K
+		final int oldTopN = topN;
 		topN = 100_000;
 		final Set<Itemset> top100KFreqItemsets = filterSingletons(freqItemsets);
 
@@ -112,7 +113,7 @@ public class ItemsetSymmetricDistance {
 		final Map<Itemset, Double> freqItemsetsChiSquared = ImmutableSortedMap.copyOf(itemsetsMap, comparator);
 
 		// Measure symmetric difference between the two sets of itemsets
-		topN = 100;
+		topN = oldTopN;
 		final Set<Itemset> topFreqItemsets = filterSingletons(freqItemsetsChiSquared);
 		final double avgMinDiff = calculateRedundancy(topFreqItemsets);
 		System.out.println("\nAvg min sym diff: " + avgMinDiff);
@@ -181,7 +182,7 @@ public class ItemsetSymmetricDistance {
 			if (count == topN)
 				break;
 		}
-		if (count < 100)
+		if (count < topN)
 			System.out.println("Not enough non-singleton sequences in set: " + count);
 
 		return topItemsets;

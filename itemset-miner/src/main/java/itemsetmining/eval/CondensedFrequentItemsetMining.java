@@ -24,8 +24,8 @@ public class CondensedFrequentItemsetMining {
 	public static void main(final String[] args) throws IOException {
 
 		// MTV Parameters
-		final String[] datasets = new String[] { "plants", "mammals", "abstracts", "uganda" };
-		final double[] minSupps = new double[] { 0.05750265949, 0.1872659176, 0.01164144353, 0.001 };
+		final String[] datasets = new String[] { "plants", "mammals", "abstracts", "uganda", "retail" };
+		final double[] minSupps = new double[] { 0.05750265949, 0.1872659176, 0.01164144353, 0.001, 0.00011342755 };
 
 		for (int i = 0; i < datasets.length; i++) {
 

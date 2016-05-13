@@ -28,10 +28,9 @@ public class StatisticalItemsetMining {
 	public static void main(final String[] args) throws IOException {
 
 		// MTV Parameters
-		final String[] datasets = new String[] { "plants", "mammals", "abstracts", "uganda" };
-		final double[] minSupps = new double[] { 0.05750265949, 0.1872659176, 0.01164144353, 0.001 }; // relative
-		final int[] minAbsSupps = new int[] { 2000, 500, 10, 125 }; // absolute
-		// final int noItemsets = 1000;
+		final String[] datasets = new String[] { "plants", "mammals", "abstracts", "uganda", "retail" };
+		final double[] minSupps = new double[] { 0.05750265949, 0.1872659176, 0.01164144353, 0.001, 0.00011342755 }; // relative
+		final int[] minAbsSupps = new int[] { 2000, 500, 10, 125, 10 }; // absolute
 
 		for (int i = 0; i < datasets.length; i++) {
 
@@ -41,10 +40,9 @@ public class StatisticalItemsetMining {
 			// final String saveFile =
 			// "/afs/inf.ed.ac.uk/user/j/jfowkes/Code/Itemsets/MTV/" +
 			// datasets[i] + ".txt";
-			// mineItemsets(new File(dbPath), minSupps[i], noItemsets, new
+			// mineMTVItemsets(new File(dbPath), minSupps[i], 200, new
 			// File(saveFile));
-
-			mineSLIMItemsets(new File(dbPath), minAbsSupps[i], 24);
+			// mineSLIMItemsets(new File(dbPath), minAbsSupps[i], 24);
 			// mineKRIMPItemsets(new File(dbPath), minAbsSupps[i]);
 			// mineTilingItemsets(new File(dbPath), minSupps[i]); // min
 			// area
