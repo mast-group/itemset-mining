@@ -5,7 +5,7 @@ IIM is a novel algorithm that mines the itemsets that are most interesting under
 
 This is an implementation of the itemset miner from our paper:  
 [*A Bayesian Network Model for Interesting Itemsets*](http://arxiv.org/abs/1510.04130)  
-J. Fowkes and C. Sutton. arXiv preprint 1510.04130, 2015.   
+J. Fowkes and C. Sutton. PKDD 2016.   
 
 
 Installation 
