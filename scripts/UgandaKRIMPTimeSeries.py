@@ -17,6 +17,9 @@ db_file = basedir + 'Datasets/Uganda/3mths/uganda_en_filtered.dat'
 dates_file = basedir + 'Datasets/Uganda/3mths/dates_en_filtered.txt'
 item_dict = basedir + 'Datasets/Uganda/items_en.dict'
 
+rc('ps', fonttype=42)
+rc('pdf', fonttype=42)
+
 rc('xtick', labelsize=16)
 rc('ytick', labelsize=16)
 

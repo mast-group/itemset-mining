@@ -5,6 +5,9 @@ from matplotlib import rc
 import numpy as np
 import os
 
+rc('ps', fonttype=42)
+rc('pdf', fonttype=42)
+
 rc('xtick', labelsize=16) 
 rc('ytick', labelsize=16) 
 
